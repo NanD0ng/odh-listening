@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>单词库 · ODH 英语学习工具</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px 70px; }
+  .topbar { position: sticky; top: 0; }
+  .head { padding: 46px 0 18px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+  .head h1 { margin: 0; font-family: var(--serif); font-size: 44px; letter-spacing: 1px; }
+  .head .sub { font-size: 12.5px; color: var(--muted); line-height: 1.7; padding-bottom: 5px; }
+  .head .sub b { color: var(--ink); }
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 0; margin-bottom: 18px; }
+  .tab {
+    border: 0; background: transparent; padding: 10px 16px; font-size: 13.5px; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tab.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .search {
+    flex: 1; min-width: 220px; height: 36px; border-radius: 10px; border: 1px solid var(--line-strong);
+    background: var(--bg-elev); padding: 0 12px; font-size: 13px; color: var(--ink); outline: none;
+  }
+  .search:focus { border-color: var(--accent); }
+  .lv { display: flex; gap: 4px; }
+  .lv button { border: 1px solid var(--line-strong); background: var(--bg-elev); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--muted); }
+  .lv button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .hint { font-size: 11.5px; color: var(--muted); }
+
+  .uw-list, .wd-list { display: flex; flex-direction: column; gap: 10px; }
+  .uw-card {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  }
+  .uw-top { display: flex; align-items: baseline; gap: 10px; }
+  .uw-word { font-family: var(--serif); font-size: 21px; font-weight: 700; }
+  .uw-ph { font-size: 12px; color: var(--muted); }
+  .uw-known { font-size: 10.5px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 8px; font-weight: 700; }
+  .uw-count { margin-left: auto; font-size: 11px; background: var(--gold-soft); color: var(--gold); border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .uw-sense { margin-top: 6px; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .uw-sense .pos { color: var(--accent); font-style: italic; margin-right: 4px; }
+  .uw-ctx { margin-top: 8px; font-family: var(--serif); font-size: 13.5px; line-height: 1.75; color: #5c626c; border-left: 3px solid var(--line-strong); padding-left: 10px; }
+  .uw-ctx b { color: var(--gold); }
+  .uw-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .uw-src { font-size: 11.5px; color: var(--muted); }
+  .uw-foot button {
+    border: 1px solid var(--line-strong); background: transparent; color: var(--muted);
+    border-radius: 8px; padding: 4px 9px; font-size: 11.5px;
+  }
+  .uw-foot .mark { margin-left: 0; }
+  .uw-foot .mark.done { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .uw-foot .del { margin-left: auto; }
+  .uw-foot button:hover { border-color: var(--danger); color: var(--danger); }
+  .uw-foot .mark:hover { border-color: var(--accent); color: var(--accent); }
+  .uw-ex, .wd-ex {
+    margin-top: 7px; font-size: 12px; line-height: 1.7; color: #7a7670;
+    border-left: 3px solid var(--line-strong); padding-left: 9px;
+  }
+  .uw-ex .lab, .wd-ex .lab {
+    display: inline-block; font-size: 9px; letter-spacing: 1px; color: var(--muted);
+    font-weight: 700; margin-right: 5px; vertical-align: 1px;
+  }
+  .uw-ex .cn, .wd-ex .cn { color: #8b8580; margin-left: 6px; }
+  .uw-ex button, .wd-ex button {
+    border: 1px solid var(--line-strong); background: var(--bg-elev); color: var(--accent);
+    border-radius: 7px; padding: 2px 7px; font-size: 10.5px; margin-left: 5px;
+  }
+  .uw-ex button:hover, .wd-ex button:hover { border-color: var(--accent); }
+  .wd-ex { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .wd-row.open .wd-ex { display: block; -webkit-line-clamp: unset; overflow: visible; }
+  .uw-online { margin-top: 7px; font-size: 12px; line-height: 1.7; color: var(--muted); }
+  .uw-sense .def { margin-top: 3px; color: var(--ink-soft); }
+  .uw-sense .def .pos { color: var(--accent); font-style: italic; margin-right: 4px; }
+  .empty-card {
+    border: 1px dashed var(--line-strong); border-radius: 14px; padding: 46px 20px; text-align: center;
+    color: var(--muted); font-size: 13px; line-height: 1.9; background: var(--bg-elev);
+  }
+  .wd-row {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 11px; padding: 11px 14px;
+    cursor: pointer;
+  }
+  .wd-row:hover { border-color: var(--line-strong); }
+  .wd-top { display: flex; align-items: baseline; gap: 10px; }
+  .wd-word { font-family: var(--serif); font-size: 18px; font-weight: 700; }
+  .wd-ph { font-size: 11.5px; color: var(--muted); }
+  .wd-lv { margin-left: auto; font-size: 10px; letter-spacing: .6px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 7px; }
+  .wd-senses { margin-top: 4px; font-size: 12.3px; color: var(--ink-soft); line-height: 1.7; }
+  .wd-senses .pos { color: var(--accent); font-style: italic; margin-right: 4px; }
+  .wd-more { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; line-height: 1.8; color: var(--ink-soft); }
+  .wd-row.open .wd-more { display: block; }
+  .load-more { margin: 16px auto 0; display: block; }
+  @media (max-width: 640px) {
+    .head { padding-top: 28px; }
+    .head h1 { font-size: 34px; }
+    .uw-top { flex-wrap: wrap; }
+    .uw-count { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="mark">O</span>
+      <span>ODH<small>ENGLISH LISTENING</small></span>
+    </a>
+    <span class="sep"></span>
+    <div class="crumb"><a href="index.html">首页</a><span>/</span><b>单词库</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="study.html">随机背单词</a>
+    <a class="pill" href="roots.html">词根记忆法</a>
+    <a class="pill" href="practice.html?set=jun2025">继续精听</a>
+  </header>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>单词库</h1>
+      <div class="sub">离线词库 <b id="dict-count">0</b> 个 · 生词本 <b id="unknown-count">0</b> 个 · 已掌握 <b id="known-count">0</b> 个<br>
+        生词按“在不同套卷里点过陌的次数”排序，次数越多越靠前。</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="unknown">我的生词</button>
+      <button class="tab" data-tab="all">完整词库</button>
+    </div>
+
+    <div id="tab-unknown">
+      <div class="toolbar">
+        <input class="search" id="search-unknown" placeholder="搜索生词 / 中文释义…" />
+        <div class="lv" id="uw-view">
+          <button class="on" data-uw="all">全部</button>
+          <button data-uw="unknown">未掌握</button>
+          <button data-uw="known">已掌握</button>
+        </div>
+        <span class="hint" id="unknown-hint"></span>
+      </div>
+      <div class="uw-list" id="uw-list"></div>
+    </div>
+
+    <div id="tab-all" style="display:none">
+      <div class="toolbar">
+        <input class="search" id="search-all" placeholder="输入单词或中文释义，如 abandon / 放弃…" />
+        <div class="lv" id="lv">
+          <button class="on" data-lv="ALL">全部</button>
+          <button data-lv="CET4">CET4</button>
+          <button data-lv="CET6">CET6</button>
+        </div>
+      </div>
+      <div class="hint" id="all-hint" style="margin-bottom:10px"></div>
+      <div class="wd-list" id="wd-list"></div>
+      <button class="pill load-more" id="load-more">加载更多</button>
+    </div>
+  </div>
+
+  <script src="assets/js/data/all_sets.js"></script>
+  <script src="assets/js/data/words.js"></script>
+  <script src="assets/js/data/examples.js"></script>
+  <script>
+  (function () {
+    const WORDS = window.ODH_WORDS || {};
+    const SETS = window.ODH_SETS || {};
+    const EXAMPLES = (window.ODH_EXAMPLES && window.ODH_EXAMPLES.examples) || {};
+    const KEY = 'odh.unknown.v1';
+    const EX_CACHE_KEY = 'odh.example.v1';
+    const WORD_CACHE_PREFIX = 'odh.word.';
+    const onlineMemo = Object.create(null);
+    const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const store = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
+    const rows = Object.keys(WORDS).map(k => ({ k, ...WORDS[k] }));
+    const $ = s => document.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+    let tab = 'unknown', lv = 'ALL', shown = 80, q = '', uwView = 'all';
+
+    $('#dict-count').textContent = rows.length;
+
+    function topSenses(entry, n) {
+      return (entry.m || []).slice(0, n).map(m => `<span class="pos">${esc(m[0])}</span>${esc(m[1])}`).join('；');
+    }
+    function exampleHtml(w, cls) {
+      const x = EXAMPLES[w];
+      if (x && x.s) {
+        return `<div class="${cls}"><span class="lab">例</span>${esc(x.s)}${x.cn ? `<span class="cn">${esc(x.cn)}</span>` : ''}</div>`;
+      }
+      return `<div class="${cls}" data-ex-word="${esc(w)}"><span class="lab">例</span>暂无本地例句<button data-fetch-ex="${esc(w)}">在线查例句</button></div>`;
+    }
+    async function fetchExample(w) {
+      try {
+        const cache = JSON.parse(localStorage.getItem(EX_CACHE_KEY) || '{}');
+        if (cache[w] && cache[w].s) return cache[w].s;
+      } catch (e) {}
+      const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
+      try {
+        const r = await Promise.race([
+          fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(w)),
+          timeout(8000),
+        ]);
+        if (!r || !r.ok) return null;
+        const data = await r.json();
+        for (const entry of data) {
+          for (const m of entry.meanings || []) {
+            for (const d of m.definitions || []) {
+              const s = (d.example || '').trim();
+              if (!s) continue;
+              const n = s.split(/\s+/).length;
+              if (n < 3 || n > 45) continue;
+              const cache = JSON.parse(localStorage.getItem(EX_CACHE_KEY) || '{}');
+              cache[w] = { s, at: Date.now() };
+              localStorage.setItem(EX_CACHE_KEY, JSON.stringify(cache));
+              return s;
+            }
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+    function loadExampleInto(w, box) {
+      if (!box) return;
+      box.innerHTML = '<span class="lab">例</span>正在联网查例句…';
+      fetchExample(w).then(s => {
+        if (!s) {
+          box.innerHTML = `<span class="lab">例</span>暂未查到例句<button data-fetch-ex="${esc(w)}">重试</button>`;
+          return;
+        }
+        box.innerHTML = `<span class="lab">例</span>${esc(s)}<span class="cn">在线词典</span>`;
+      });
+    }
+    function onlineCache(w) {
+      try { return JSON.parse(localStorage.getItem(WORD_CACHE_PREFIX + w) || 'null'); } catch (e) { return null; }
+    }
+    async function fetchOnlineWord(w) {
+      if (onlineMemo[w]) return onlineMemo[w];
+      const cached = onlineCache(w);
+      if (cached) { onlineMemo[w] = cached; return cached; }
+      const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
+      const req = url => Promise.race([
+        fetch(url).then(r => r.ok ? r.json() : null),
+        timeout(8000),
+      ]);
+      const jobs = [
+        req('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(w)),
+        req('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(w) + '&langpair=en%7Czh-CN'),
+      ];
+      const [d, z] = await Promise.allSettled(jobs);
+      const dict = d.status === 'fulfilled' ? d.value : null;
+      const zh = z && z.status === 'fulfilled' && z.value ? (z.value.responseData || {}).translatedText : '';
+      const cleanZh = zh && zh.trim().toLowerCase() !== w.toLowerCase() ? zh.trim() : '';
+      const out = { word: w, phonetic: '', zh: cleanZh, defs: [] };
+      if (Array.isArray(dict) && dict[0]) {
+        out.phonetic = dict[0].phonetic || (dict[0].phonetics || []).find(p => p.text)?.text || '';
+        (dict[0].meanings || []).slice(0, 3).forEach(m => {
+          (m.definitions || []).slice(0, 2).forEach(dd => out.defs.push({ pos: m.partOfSpeech, text: dd.definition }));
+        });
+      }
+      onlineMemo[w] = out;
+      localStorage.setItem(WORD_CACHE_PREFIX + w, JSON.stringify(out));
+      return out;
+    }
+    function onlineSenseHtml(data) {
+      let html = '';
+      if (data.phonetic) html += `<div class="def"><span class="pos">音标</span>${esc(data.phonetic)}</div>`;
+      if (data.zh) html += `<div class="def"><span class="pos">中文</span>${esc(data.zh)}</div>`;
+      (data.defs || []).slice(0, 3).forEach(d => {
+        html += `<div class="def"><span class="pos">${esc(d.pos)}</span>${esc(d.text)}</div>`;
+      });
+      return html || '离线词库未收录；在线释义暂不可用。';
+    }
+    function hydrateOnline() {
+      $$('#uw-list [data-online-word]').forEach(el => {
+        const w = el.dataset.onlineWord;
+        fetchOnlineWord(w).then(data => {
+          if (!document.body.contains(el)) return;
+          el.innerHTML = onlineSenseHtml(data);
+          el.removeAttribute('data-online-word');
+        }).catch(() => {
+          if (document.body.contains(el)) el.innerHTML = '离线词库未收录；联网查询失败，稍后可重试。';
+        });
+      });
+    }
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-fetch-ex]');
+      if (!b) return;
+      e.preventDefault();
+      e.stopPropagation();
+      loadExampleInto(b.dataset.fetchEx, b.closest('.uw-ex, .wd-ex'));
+    });
+    function renderAll() {
+      const data = store();
+      const list = Object.keys(data).map(w => ({ w, ...data[w] }))
+        .sort((a, b) => (a.known ? 1 : 0) - (b.known ? 1 : 0) || (b.count || 0) - (a.count || 0) || (b.lastAt || 0) - (a.lastAt || 0));
+      $('#unknown-count').textContent = list.length;
+      $('#known-count').textContent = list.filter(x => x.known).length;
+      const qq = q.trim().toLowerCase();
+      let filtered = qq ? list.filter(x => {
+        const e = WORDS[x.w];
+        return x.w.includes(qq) || (e && (e.m || []).some(m => (m[1] || '').includes(qq)));
+      }) : list;
+      if (uwView === 'unknown') filtered = filtered.filter(x => !x.known);
+      else if (uwView === 'known') filtered = filtered.filter(x => x.known);
+      $('#unknown-hint').textContent = filtered.length ? `${filtered.length} 个词` : '';
+      if (!filtered.length) {
+        $('#uw-list').innerHTML = `<div class="empty-card">${list.length ? '没有匹配的生词' : '生词本还是空的。<br>去精听页点开任意单词，点白色小方块上的「陌」，就会出现在这里。'}</div>`;
+        return;
+      }
+      $('#uw-list').innerHTML = filtered.map(x => {
+        const e = WORDS[x.w];
+        const cached = e ? null : onlineCache(x.w);
+        const set = SETS[x.sample && x.sample.set];
+        const src = set ? set.short : (x.sample && x.sample.set) || '';
+        return `<div class="uw-card" data-w="${esc(x.w)}">
+          <div class="uw-top">
+            <span class="uw-word">${esc(e ? e.w : x.w)}</span>
+            <span class="uw-ph">${esc(e ? e.p : '')}</span>
+            ${x.known ? '<span class="uw-known">已掌握</span>' : ''}
+            <span class="uw-count">${x.src === 'root' ? '来自词根记忆法' : x.src === 'study' ? '来自随机背单词' : x.src === 'reading' ? '来自阅读' : x.src === 'translate' ? '来自翻译' : '不认识于 ' + (x.count || 0) + ' 套卷'}</span>
+          </div>
+          <div class="uw-sense"${!e && !cached ? ` data-online-word="${esc(x.w)}"` : ''}>${e ? topSenses(e, 2) : (cached ? onlineSenseHtml(cached) : '离线词库未收录 · 正在联网补释义…')}</div>
+          ${exampleHtml(x.w, 'uw-ex')}
+          ${x.sample && x.sample.sentence ? `<div class="uw-ctx">${highlight(x.sample.sentence, x.w)}</div>` : ''}
+          <div class="uw-foot"><span class="uw-src">${esc(src)}${x.sample && x.sample.part != null ? ' · P' + x.sample.part : ''}</span>
+            <button class="mark ${x.known ? 'done' : ''}" data-known="${esc(x.w)}">${x.known ? '已掌握 · 撤销' : '标为已掌握'}</button>
+            <button class="del" data-remove="${esc(x.w)}">移出</button></div>
+        </div>`;
+      }).join('');
+      hydrateOnline();
+    }
+    function highlight(sentence, word) {
+      const safe = esc(sentence);
+      const re = new RegExp('\\b(' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\b', 'ig');
+      return safe.replace(re, '<b>$1</b>');
+    }
+    function renderWords() {
+      const qq = q.trim().toLowerCase();
+      let list = rows;
+      if (lv !== 'ALL') list = list.filter(x => (x.l || '').includes(lv));
+      if (qq) list = list.filter(x => x.w.toLowerCase().includes(qq) || (x.m || []).some(m => (m[1] || '').includes(qq)));
+      $('#all-hint').textContent = qq || lv !== 'ALL' ? `匹配 ${list.length} 个词` : `共 ${list.length} 个词，按字母序`;
+      const slice = list.slice(0, shown);
+      $('#load-more').style.display = slice.length < list.length ? 'block' : 'none';
+      $('#wd-list').innerHTML = slice.map(x => `<div class="wd-row" data-k="${esc(x.k)}">
+        <div class="wd-top"><span class="wd-word">${esc(x.w)}</span><span class="wd-ph">${esc(x.p || '')}</span><span class="wd-lv">${esc(x.l || '')}</span></div>
+        <div class="wd-senses">${topSenses(x, 2)}</div>
+        ${exampleHtml(x.k, 'wd-ex')}
+        <div class="wd-more">${(x.m || []).map(m => `<div><span class="pos">${esc(m[0])}</span>${esc(m[1])}</div>`).join('')}</div>
+      </div>`).join('') || '<div class="empty-card">没有匹配的词</div>';
+    }
+
+    document.querySelector('.tabs').addEventListener('click', e => {
+      const b = e.target.closest('[data-tab]');
+      if (!b) return;
+      tab = b.dataset.tab;
+      document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+      $('#tab-unknown').style.display = tab === 'unknown' ? 'block' : 'none';
+      $('#tab-all').style.display = tab === 'all' ? 'block' : 'none';
+      if (tab === 'unknown') renderAll(); else renderWords();
+    });
+    $('#search-unknown').addEventListener('input', e => { q = e.target.value; renderAll(); });
+    $('#uw-view').addEventListener('click', e => {
+      const b = e.target.closest('[data-uw]');
+      if (!b) return;
+      uwView = b.dataset.uw;
+      document.querySelectorAll('#uw-view button').forEach(x => x.classList.toggle('on', x === b));
+      renderAll();
+    });
+    $('#search-all').addEventListener('input', e => { q = e.target.value; shown = 80; renderWords(); });
+    $('#lv').addEventListener('click', e => {
+      const b = e.target.closest('[data-lv]');
+      if (!b) return;
+      lv = b.dataset.lv;
+      document.querySelectorAll('#lv button').forEach(x => x.classList.toggle('on', x === b));
+      shown = 80;
+      renderWords();
+    });
+    $('#load-more').addEventListener('click', () => { shown += 120; renderWords(); });
+    $('#wd-list').addEventListener('click', e => {
+      const row = e.target.closest('.wd-row');
+      if (row) row.classList.toggle('open');
+    });
+    $('#uw-list').addEventListener('click', e => {
+      const knownBtn = e.target.closest('[data-known]');
+      if (knownBtn) {
+        const w = knownBtn.dataset.known;
+        const data = store();
+        if (!data[w]) return;
+        data[w].known = !data[w].known;
+        localStorage.setItem(KEY, JSON.stringify(data));
+        renderAll();
+        return;
+      }
+      const btn = e.target.closest('[data-remove]');
+      if (!btn) return;
+      const w = btn.dataset.remove;
+      const data = store();
+      if (!data[w]) return;
+      if (!confirm(`把 “${w}” 从生词本移出？历史次数会一起清掉。`)) return;
+      delete data[w];
+      localStorage.setItem(KEY, JSON.stringify(data));
+      renderAll();
+    });
+    renderAll();
+    renderWords();
+  })();
+  </script>
+</body>
+</html>

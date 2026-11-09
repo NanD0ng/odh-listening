@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>错题本 · ODH 英语学习工具</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px 80px; }
+  .topbar { position: sticky; top: 0; }
+  .head { padding: 46px 0 14px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+  .head h1 { margin: 0; font-family: var(--serif); font-size: 44px; letter-spacing: 1px; }
+  .head .sub { font-size: 12.5px; color: var(--muted); line-height: 1.7; padding-bottom: 5px; }
+  .head .sub b { color: var(--ink); }
+
+  .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 20px 0 24px; }
+  .sum-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .sum-card b { display: block; font-family: var(--serif); font-size: 25px; line-height: 1.2; }
+  .sum-card span { font-size: 11.5px; color: var(--muted); }
+
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin: 18px 0 16px; }
+  .tab {
+    border: 0; background: transparent; padding: 9px 15px; font-size: 13px; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 600;
+  }
+  .tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab b { display: inline-block; min-width: 18px; padding: 1px 6px; margin-left: 3px; border-radius: 99px; background: var(--gold-soft); color: var(--gold); font-size: 10.5px; }
+  .filters { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filters button {
+    border: 1px solid var(--line-strong); background: var(--bg-elev); color: var(--muted);
+    border-radius: 999px; padding: 6px 13px; font-size: 12px;
+  }
+  .filters button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+  .r-list { display: flex; flex-direction: column; gap: 12px; }
+  .r-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+  .r-card.is-fixed { opacity: .82; }
+  .r-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
+  .r-set { font-weight: 700; color: var(--ink-soft); }
+  .r-badge { border-radius: 999px; padding: 2px 8px; font-weight: 700; background: var(--bg-deep); color: var(--muted); }
+  .r-badge.bad { background: #f7e6e2; color: #a23b2a; }
+  .r-badge.ok { background: var(--accent-soft); color: var(--accent); }
+  .r-stem { font-family: var(--serif); font-size: 16px; line-height: 1.65; margin: 9px 0 9px; }
+  .r-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .r-opt { border: 1px solid var(--line); border-radius: 9px; padding: 6px 9px; font-size: 12.5px; line-height: 1.55; color: var(--ink-soft); }
+  .r-opt .k { font-weight: 700; margin-right: 5px; color: var(--muted); }
+  .r-opt.right { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+  .r-opt.right .k { color: var(--accent); }
+  .r-opt.wrong { border-color: #d8a79c; background: #fdf2ef; color: #8d3a2b; }
+  .r-opt.wrong .k { color: #a23b2a; }
+  .r-src {
+    margin-top: 10px; padding: 8px 11px; border-left: 3px solid var(--line-strong);
+    font-family: var(--serif); font-size: 12.5px; line-height: 1.7; color: #5c626c;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .r-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; font-size: 12px; color: var(--muted); }
+  .r-foot b { color: var(--ink-soft); }
+  .r-foot b.good { color: var(--accent); }
+  .r-actions { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+  .r-actions a, .r-actions button {
+    border: 1px solid var(--line-strong); background: transparent; color: var(--muted);
+    border-radius: 8px; padding: 5px 10px; font-size: 11.5px; text-decoration: none;
+  }
+  .r-actions a { color: var(--accent); border-color: var(--accent); }
+  .r-actions button:hover { border-color: var(--accent); color: var(--accent); }
+  .w-list { display: flex; flex-direction: column; gap: 10px; }
+  .w-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .w-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .w-word { font-family: var(--serif); font-size: 21px; font-weight: 700; }
+  .w-pos { font-size: 11px; color: var(--accent); font-style: italic; }
+  .w-set { margin-left: auto; font-size: 10.5px; color: var(--muted); background: var(--bg-deep); border-radius: 99px; padding: 2px 8px; }
+  .w-count { font-size: 10.5px; color: var(--danger); background: #fbeaea; border-radius: 99px; padding: 2px 8px; font-weight: 700; }
+  .w-mean { margin-top: 6px; font-size: 13px; line-height: 1.75; color: var(--ink-soft); }
+  .w-sent { margin-top: 8px; padding-left: 10px; border-left: 3px solid var(--line-strong); font-family: var(--serif); font-size: 13px; line-height: 1.75; color: #5c626c; }
+  .w-cn { margin-top: 4px; font-size: 12px; line-height: 1.7; color: var(--muted); }
+  .w-foot { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+  .w-foot a, .w-foot button {
+    border: 1px solid var(--line-strong); background: transparent; color: var(--muted);
+    border-radius: 8px; padding: 4px 9px; font-size: 11.5px; text-decoration: none;
+  }
+  .w-foot a { color: var(--accent); border-color: var(--accent); }
+  .w-foot button { margin-left: auto; }
+  .w-foot button:hover { border-color: var(--danger); color: var(--danger); }
+  .empty-card {
+    border: 1px dashed var(--line-strong); border-radius: 14px; padding: 48px 20px; text-align: center;
+    color: var(--muted); font-size: 13px; line-height: 1.9; background: var(--bg-elev);
+  }
+  @media (max-width: 640px) {
+    .head { padding-top: 28px; }
+    .head h1 { font-size: 34px; }
+    .summary { grid-template-columns: 1fr 1fr; }
+    .r-opts { grid-template-columns: 1fr; }
+    .r-actions { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="mark">O</span>
+      <span>ODH<small>ENGLISH LISTENING</small></span>
+    </a>
+    <span class="sep"></span>
+    <div class="crumb"><a href="index.html">题库</a><span>/</span><b>错题本</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="roots.html">词根记忆法</a>
+    <a class="pill" href="words.html">单词库</a>
+    <a class="pill primary" href="index.html">首页</a>
+  </header>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>错题本</h1>
+      <div class="sub">提交答案后，答错与未答的题会自动汇总到这里。<br>陌生单词集里标“不认识”的词也会进入「单词错题」，可以单独移出。</div>
+    </div>
+
+    <div class="summary">
+      <div class="sum-card"><b id="sum-pending">0</b><span>待订正</span></div>
+      <div class="sum-card"><b id="sum-fixed">0</b><span>已订正</span></div>
+      <div class="sum-card"><b id="sum-sets">0</b><span>涉及套卷</span></div>
+      <div class="sum-card"><b id="sum-acc">—</b><span>已答正确率</span></div>
+    </div>
+
+    <div class="tabs" id="rtabs">
+      <button class="tab on" data-tab="q">题目错题</button>
+      <button class="tab" data-tab="w">单词错题 <b id="word-tab-count">0</b></button>
+    </div>
+
+    <div id="q-view">
+      <div class="filters" id="filters">
+        <button class="on" data-view="pending">待订正</button>
+        <button data-view="fixed">已订正</button>
+        <button data-view="all">全部</button>
+      </div>
+
+      <div class="r-list" id="list"></div>
+    </div>
+
+    <div id="w-view" style="display:none">
+      <div class="w-list" id="word-list"></div>
+    </div>
+  </div>
+
+  <script src="assets/js/data/all_sets.js"></script>
+  <script>
+  (function () {
+    const SETS = window.ODH_SETS || {};
+    const FIXED_KEY = 'odh.fixed.v1';
+    const WORD_WRONG_KEY = 'odh.wordwrong.v1';
+    const $ = s => document.querySelector(s);
+    const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const fmt = t => {
+      t = Math.max(0, Math.floor(t || 0));
+      return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+    };
+    const byTime = (a, b) => {
+      const ao = a.order || 0, bo = b.order || 0;
+      return (Math.floor(bo / 100) - Math.floor(ao / 100)) || (ao - bo);
+    };
+    const readJSON = k => { try { return JSON.parse(localStorage.getItem(k) || '{}'); } catch (e) { return {}; } };
+    const fixedStore = () => readJSON(FIXED_KEY);
+    const saveFixed = o => localStorage.setItem(FIXED_KEY, JSON.stringify(o));
+    let view = 'pending';
+    let tab = 'q';
+
+    function switchView() {
+      $('#q-view').style.display = tab === 'q' ? 'block' : 'none';
+      $('#w-view').style.display = tab === 'w' ? 'block' : 'none';
+      document.querySelectorAll('#rtabs .tab').forEach(x => x.classList.toggle('on', x.dataset.tab === tab));
+    }
+
+    function renderWords() {
+      const store = readJSON(WORD_WRONG_KEY);
+      const list = Object.keys(store).map(w => Object.assign({ w }, store[w]))
+        .sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0));
+      $('#word-tab-count').textContent = list.length;
+      if (!list.length) {
+        $('#word-list').innerHTML = '<div class="empty-card">还没有单词错题。<br>去某套的「陌生单词集」里把不会的词选成“不认识”，就会出现在这里。</div>';
+        return;
+      }
+      $('#word-list').innerHTML = list.map(x => `<article class="w-card">
+        <div class="w-top">
+          <span class="w-word">${esc(x.w)}</span>
+          ${x.pos ? `<span class="w-pos">${esc(x.pos)}</span>` : ''}
+          ${x.lemma ? `<span class="w-pos">原形 · ${esc(x.lemma)}</span>` : ''}
+          <span class="w-set">${esc(x.setTitle || x.set || '')}</span>
+          <span class="w-count">错 ${x.count || 1} 次</span>
+        </div>
+        ${x.meaning ? `<div class="w-mean">${esc(x.meaning)}</div>` : '<div class="w-mean">离线词库未收录</div>'}
+        ${x.sentence ? `<div class="w-sent">${esc(x.sentence)}</div>` : ''}
+        ${x.zh ? `<div class="w-cn">${esc(x.zh)}</div>` : ''}
+        <div class="w-foot">
+          ${x.set ? `<a href="setwords.html?set=${encodeURIComponent(x.set)}">去该套陌生词</a>` : ''}
+          <button data-word-remove="${esc(x.w)}">移出单词错题</button>
+        </div>
+      </article>`).join('');
+    }
+
+    function collect() {
+      const fixed = fixedStore();
+      const items = [];
+      let answered = 0, right = 0, submittedSets = 0;
+      Object.values(SETS).sort(byTime).forEach(s => {
+        const submitted = localStorage.getItem('odh.submitted.' + s.id) === '1';
+        const ans = readJSON('odh.answer.' + s.id);
+        if (submitted) submittedSets++;
+        s.parts.forEach(p => {
+          const type = p.section === 'A' ? '长对话' : (p.section === 'B' ? '听力篇章' : '讲座/讲话');
+          const ss = p.paragraphs.flatMap(x => x.sentences);
+          p.questions.forEach(q => {
+            const sel = ans[q.no];
+            if (submitted) {
+              if (sel) answered++;
+              if (sel === q.answerKey) right++;
+              if (sel !== q.answerKey) {
+                const key = s.id + ':' + q.no;
+                const ev = ss[q.evidenceStart != null ? q.evidenceStart : q.evidenceSentence];
+                items.push({ s, p, q, sel, type, fixed: !!fixed[key], key, evTime: ev ? ev.start : null });
+              }
+            }
+          });
+        });
+      });
+      items.sort((a, b) => byTime(a.s, b.s) || a.q.no - b.q.no);
+      return { items, answered, right, submittedSets, fixed };
+    }
+
+    function render() {
+      renderWords();
+      switchView();
+      const data = collect();
+      const pending = data.items.filter(x => !x.fixed);
+      const fixedCount = data.items.filter(x => x.fixed).length;
+      $('#sum-pending').textContent = pending.length;
+      $('#sum-fixed').textContent = fixedCount;
+      $('#sum-sets').textContent = new Set(pending.map(x => x.s.id)).size;
+      $('#sum-acc').textContent = data.answered ? Math.round(data.right / data.answered * 100) + '%' : '—';
+
+      let list = data.items;
+      if (view === 'pending') list = pending;
+      else if (view === 'fixed') list = data.items.filter(x => x.fixed);
+
+      if (!data.submittedSets) {
+        $('#list').innerHTML = '<div class="empty-card">还没有提交过答案。<br>去任意一套的答题模式提交后，答错和未答的题会自动出现在这里。</div>';
+        return;
+      }
+      if (!list.length) {
+        $('#list').innerHTML = `<div class="empty-card">${view === 'fixed' ? '还没有已订正的题目。' : '这一栏已经清空了，继续保持。'}</div>`;
+        return;
+      }
+
+      $('#list').innerHTML = list.map(x => {
+        const status = x.fixed ? '已订正' : (x.sel ? '答错' : '未答');
+        const badge = x.fixed ? 'ok' : (x.sel ? 'bad' : '');
+        const opts = x.q.options.map(o => {
+          let cls = 'r-opt';
+          if (o.key === x.q.answerKey) cls += ' right';
+          else if (o.key === x.sel) cls += ' wrong';
+          return `<div class="${cls}"><span class="k">${o.key}</span>${esc(o.text)}</div>`;
+        }).join('');
+        return `<article class="r-card ${x.fixed ? 'is-fixed' : ''}">
+          <div class="r-top">
+            <span class="r-set">${esc(x.s.short || x.s.title)}</span>
+            <span>Q${x.q.no}</span>
+            <span>Section ${x.p.section} · ${x.type}</span>
+            ${x.evTime != null ? `<span>证据 ${fmt(x.evTime)}</span>` : ''}
+            <span class="r-badge ${badge}">${status}</span>
+          </div>
+          <div class="r-stem">${esc(x.q.stem)}</div>
+          <div class="r-opts">${opts}</div>
+          ${x.q.evidenceEn ? `<div class="r-src">${esc(x.q.evidenceEn)}</div>` : ''}
+          <div class="r-foot">
+            <span>你的答案 <b>${x.sel || '—'}</b> · 正确答案 <b class="good">${x.q.answerKey}</b>${x.q.answerText ? ' · ' + esc(x.q.answerText) : ''}</span>
+            <div class="r-actions">
+              <a href="practice.html?set=${x.s.id}&q=${x.q.no}">去精听</a>
+              <button data-fix="${x.key}">${x.fixed ? '撤销订正' : '标为已订正'}</button>
+            </div>
+          </div>
+        </article>`;
+      }).join('');
+    }
+
+    $('#rtabs').addEventListener('click', e => {
+      const b = e.target.closest('[data-tab]');
+      if (!b) return;
+      tab = b.dataset.tab;
+      render();
+    });
+
+    $('#word-list').addEventListener('click', e => {
+      const b = e.target.closest('[data-word-remove]');
+      if (!b) return;
+      const store = readJSON(WORD_WRONG_KEY);
+      delete store[b.dataset.wordRemove];
+      localStorage.setItem(WORD_WRONG_KEY, JSON.stringify(store));
+      render();
+    });
+
+    $('#filters').addEventListener('click', e => {
+      const b = e.target.closest('[data-view]');
+      if (!b) return;
+      view = b.dataset.view;
+      document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+      render();
+    });
+
+    $('#list').addEventListener('click', e => {
+      const b = e.target.closest('[data-fix]');
+      if (!b) return;
+      const key = b.dataset.fix;
+      const fixed = fixedStore();
+      if (fixed[key]) delete fixed[key];
+      else fixed[key] = Date.now();
+      saveFixed(fixed);
+      render();
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>

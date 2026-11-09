@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ODH 英语学习工具 · 听力精听</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 26px 60px; }
+  .topbar { position: sticky; top: 0; }
+  .hero { padding: 70px 0 40px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; }
+  .kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 2px; color: var(--accent); font-weight: 700; }
+  .kicker::before { content: ""; width: 22px; height: 1px; background: var(--accent); }
+  .hero h1 {
+    margin: 14px 0 16px; font-family: var(--serif); font-weight: 700;
+    font-size: 46px; line-height: 1.22; letter-spacing: -.5px;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p { margin: 0 0 22px; color: var(--ink-soft); font-size: 14.5px; line-height: 1.9; max-width: 560px; }
+  .hero .cta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cta .pill { height: 40px; padding: 0 18px; font-size: 13px; }
+  .hero-card {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 20px;
+    padding: 22px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .hero-card::before {
+    content: ""; position: absolute; inset: -40% -20% auto auto; width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(15,118,110,.16), transparent 65%);
+  }
+  .hero-card h3 { margin: 0 0 12px; font-size: 12px; letter-spacing: 1.6px; color: var(--muted); }
+  .mini-demo { font-family: var(--serif); font-size: 15.5px; line-height: 2.0; color: #2a2e35; }
+  .mini-demo .hl { background: var(--gold-soft); box-shadow: inset 2px 0 0 var(--gold); padding: 1px 4px; border-radius: 3px; }
+  .mini-demo .cur { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); padding: 1px 4px; border-radius: 3px; }
+  .mini-demo .bd { display: inline-block; margin-left: 4px; background: var(--gold); color: #fff; font-family: var(--ui); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 99px; vertical-align: 2px; }
+  .mini-bar { margin-top: 18px; display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--muted); }
+  .mini-bar .line { flex: 1; height: 4px; border-radius: 99px; background: var(--bg-deep); position: relative; }
+  .mini-bar .line i { position: absolute; left: 0; top: 0; bottom: 0; width: 46%; border-radius: 99px; background: var(--accent); display: block; }
+  .stats { display: flex; gap: 28px; margin-top: 30px; }
+  .stat b { display: block; font-family: var(--serif); font-size: 26px; }
+  .stat span { font-size: 11.5px; color: var(--muted); letter-spacing: .6px; }
+  .wordlib {
+    display: flex; align-items: center; gap: 16px; margin-top: 26px; padding: 16px 20px;
+    background: linear-gradient(135deg, #fffdf8, #f3efe6); border: 1px solid var(--line-strong);
+    border-radius: 16px; box-shadow: var(--shadow); transition: transform .16s ease, border-color .16s;
+    max-width: 560px;
+  }
+  .wordlib:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .wordlib .chars { font-family: var(--serif); font-size: 32px; font-weight: 700; letter-spacing: 2px; color: var(--ink); white-space: nowrap; }
+  .wordlib .meta { font-size: 12px; color: var(--muted); line-height: 1.8; }
+  .wordlib .meta b { color: var(--gold); }
+  .wordlib .go { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 15px; }
+
+  .modules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; max-width: 560px; }
+  .module {
+    display: flex; align-items: flex-start; gap: 11px; padding: 14px 14px 13px;
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 14px;
+    transition: transform .16s ease, border-color .16s, box-shadow .16s; min-width: 0;
+  }
+  .module:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); }
+  .module .ico {
+    flex: 0 0 auto; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center;
+    font-family: var(--serif); font-size: 19px; font-weight: 700; color: #fff;
+  }
+  .module .ico.listen { background: linear-gradient(135deg, #12857b, #0b5c56); }
+  .module .ico.word { background: linear-gradient(135deg, #b8914b, #94702e); }
+  .module .ico.read { background: linear-gradient(135deg, #4b6896, #354b70); }
+  .module .ico.trans { background: linear-gradient(135deg, #a4653f, #7e4a2c); }
+  .module .mn { min-width: 0; flex: 1; }
+  .module h4 { margin: 0; font-size: 15px; letter-spacing: .2px; }
+  .module p { margin: 3px 0 0; font-size: 10.8px; line-height: 1.65; color: var(--muted); }
+  .module p b { color: var(--gold); }
+  .module .arr { margin-left: auto; align-self: center; color: var(--muted); font-size: 15px; }
+
+  .learn {
+    max-width: 560px; margin-top: 12px; padding: 13px 18px; background: var(--bg-elev);
+    border: 1px solid var(--line); border-radius: 14px;
+  }
+  .learn-top { display: flex; align-items: center; gap: 10px; }
+  .learn-top .lab { font-size: 10.5px; letter-spacing: 1.4px; color: var(--muted); font-weight: 700; }
+  .learn-top a { margin-left: auto; font-size: 12px; color: var(--accent); font-weight: 600; }
+  .learn-nums { display: flex; gap: 26px; margin-top: 8px; flex-wrap: wrap; }
+  .learn-nums b { font-family: var(--serif); font-size: 21px; line-height: 1.2; }
+  .learn-nums span { display: block; font-size: 10.5px; color: var(--muted); }
+
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin: 26px 0 16px; }
+  .sec-head h2 { margin: 0; font-size: 18px; letter-spacing: .2px; }
+  .sec-head span { font-size: 12px; color: var(--muted); }
+  .sets { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+  .set-card {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 20px 16px; transition: transform .16s ease, box-shadow .16s ease, border-color .16s;
+    display: flex; flex-direction: column; min-height: 190px;
+  }
+  .set-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-strong); }
+  .set-card .row1 { display: flex; align-items: center; gap: 8px; }
+  .set-card .tag-d { font-size: 10.5px; letter-spacing: .6px; background: var(--accent-soft); color: var(--accent); padding: 3px 8px; border-radius: 99px; font-weight: 700; }
+  .set-card h3 { margin: 10px 0 6px; font-family: var(--serif); font-size: 21px; letter-spacing: .1px; line-height: 1.45; }
+  .set-card h3 .date { display: block; font-family: var(--ui); font-size: 11px; letter-spacing: 1.2px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+  .set-card .desc { font-size: 12.3px; color: var(--muted); line-height: 1.7; }
+  .set-card .facts { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted); margin: 14px 0 16px; }
+  .set-card .facts b { color: var(--ink-soft); font-weight: 600; }
+  .set-card .actions { margin-top: auto; display: flex; gap: 8px; align-items: center; }
+  .set-card .actions .pill { height: 33px; font-size: 12.5px; }
+  .progress-note { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .notes { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 20px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; }
+  .notes h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: 1.2px; color: var(--muted); }
+  .notes p { margin: 0 0 6px; font-size: 12px; line-height: 1.8; color: var(--muted); }
+  .notes a { color: var(--accent); border-bottom: 1px solid rgba(15,118,110,.3); }
+
+  .rootsec { margin-top: 8px; }
+  .sec-head .more { margin-left: auto; font-size: 12px; color: var(--accent); }
+  .root-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .root-tools input {
+    flex: 1; min-width: 230px; height: 38px; border-radius: 10px; border: 1px solid var(--line-strong);
+    background: var(--bg-elev); padding: 0 12px; font-size: 13px; color: var(--ink); outline: none;
+  }
+  .root-tools input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .root-tools .pill { height: 38px; }
+  .root-mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 9px; }
+  .root-mini {
+    display: block; min-width: 0; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 13px 10px; transition: transform .15s, border-color .15s, box-shadow .15s;
+  }
+  .root-mini:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); }
+  .rm-top { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+  .rm-k { font-family: var(--serif); font-size: 22px; font-weight: 700; line-height: 1.1; }
+  .rm-n { margin-left: auto; font-size: 10px; color: var(--muted); }
+  .rm-z { margin-top: 3px; font-size: 12px; color: var(--accent); font-weight: 600; }
+  .rm-s { margin-top: 6px; min-width: 0; font-size: 10.5px; color: var(--muted); line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .root-foot { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
+  .root-foot a { color: var(--accent); }
+  .root-foot a:hover { border-bottom: 1px solid var(--accent); }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 46px; gap: 26px; }
+    .hero h1 { font-size: 36px; }
+    .stats { gap: 20px; }
+    .notes { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .modules { grid-template-columns: 1fr; gap: 8px; }
+    .module { padding: 12px 13px; }
+    .module .ico { width: 33px; height: 33px; font-size: 17px; }
+    .module h4 { font-size: 14px; }
+    .module p { font-size: 10.8px; }
+    .wordlib { gap: 8px 10px; padding: 14px 15px; flex-wrap: wrap; align-content: center; }
+    .wordlib .chars { flex: 1 1 auto; font-size: 25px; letter-spacing: 1px; }
+    .wordlib .go { order: 2; width: 30px; height: 30px; flex: 0 0 auto; }
+    .wordlib .meta { order: 3; flex: 1 1 100%; min-width: 0; font-size: 11.5px; }
+    .stats { flex-wrap: wrap; gap: 16px 20px; }
+    .learn { padding: 12px 15px; }
+    .learn-nums { gap: 20px; }
+    .root-tools input { min-width: 100%; }
+    .root-tools .pill { flex: 1; justify-content: center; }
+    .root-mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .rm-k { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="mark">O</span>
+      <span>ODH<small>ENGLISH LISTENING</small></span>
+    </a>
+    <span class="sep"></span>
+    <div class="crumb"><b>首页</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="sets.html">听力题库</a>
+    <a class="pill" href="words.html">单词</a>
+    <a class="pill" href="reading.html">阅读</a>
+    <a class="pill" href="translate.html">翻译</a>
+    <a class="pill primary" href="practice.html?set=jun2025">开始精听</a>
+  </header>
+
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <div class="kicker">ODH · LISTEN · WORD · READ · TRANSLATE</div>
+        <h1>一套真题，<br>听、读、译、词<br><em>放在一起练</em>。</h1>
+        <p>六级真题按套整理：听力逐句精听，阅读 A/B/C 拆开做题与复盘，翻译写完即判；任何单词点开即查，查到的生词自动进入单词库。</p>
+        <div class="cta">
+          <a class="pill primary" href="practice.html?set=jun2025">开始精听</a>
+          <a class="pill" href="reading.html">开始阅读</a>
+          <a class="pill" href="translate.html">写一篇翻译</a>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="stat-sets">0</b><span>套六级真题</span></div>
+          <div class="stat"><b id="stat-qs">0</b><span>道听力题</span></div>
+          <div class="stat"><b id="stat-sessions">0</b><span>个考期</span></div>
+          <div class="stat"><b id="stat-roots">0</b><span>个词根</span></div>
+        </div>
+        <div class="modules">
+          <a class="module" href="sets.html">
+            <span class="ico listen">听</span>
+            <span class="mn"><h4>听力</h4><p>2023–2026 真题 · 逐句高亮<br>原文、答案、音频同步</p></span>
+            <span class="arr">→</span>
+          </a>
+          <a class="module" href="study.html">
+            <span class="ico word">词</span>
+            <span class="mn"><h4>单词</h4><p>2958 六级高频词 · <b id="root-count-mini">188</b> 词根<br>1634 个派生词族 · 生词 <b id="wl-count">0</b> 个</p></span>
+            <span class="arr">→</span>
+          </a>
+          <a class="module" href="reading.html">
+            <span class="ico read">读</span>
+            <span class="mn"><h4>阅读</h4><p>14 套 · A/B/C 全文<br>做题 / 复盘 · 点词即查</p></span>
+            <span class="arr">→</span>
+          </a>
+          <a class="module" href="translate.html">
+            <span class="ico trans">译</span>
+            <span class="mn"><h4>翻译</h4><p>14 套汉译英 · 本地评分<br>可选大模型 AI 精评</p></span>
+            <span class="arr">→</span>
+          </a>
+        </div>
+        <section class="learn">
+          <div class="learn-top">
+            <span class="lab">我的学习</span>
+            <a href="review.html">错题本 →</a>
+          </div>
+          <div class="learn-nums">
+            <div><b id="my-answered">0</b><span>已作答</span></div>
+            <div><b id="my-acc">—</b><span>已答正确率</span></div>
+            <div><b id="my-pending">0</b><span>待订正</span></div>
+            <div><b id="my-fixed">0</b><span>已订正</span></div>
+          </div>
+        </section>
+      </div>
+      <div class="hero-card">
+        <h3>精听的样子</h3>
+        <div class="mini-demo">
+          <span class="cur">I spoke to a lady there last Tuesday,</span>
+          <span class="hl">which is now 10 days ago. I made it clear it was an urgent matter</span>
+          <span class="bd">Q1 · C</span>
+          <span class="hl">and please send someone as soon as possible.</span>
+        </div>
+        <div class="mini-bar">
+          <span>00:52</span>
+          <span class="line"><i></i></span>
+          <span>26:11</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="rootsec">
+      <div class="sec-head">
+        <h2>词根记忆法</h2><span>点开词根，按路线记一整组词</span>
+        <a class="more" href="roots.html">全部词根 →</a>
+      </div>
+      <div class="root-tools">
+        <input id="home-search" placeholder="搜索词根 / 单词，例如 dict、predict、ad-" autocomplete="off" />
+        <a class="pill primary" href="roots.html?learn=1">背单词</a>
+        <a class="pill" href="roots.html?test=1">单词检测</a>
+        <a class="pill" href="sets.html">听力题库</a>
+      </div>
+      <div class="root-mini-grid" id="root-mini-grid"></div>
+      <div class="root-foot">
+        <a href="roots.html">查看全部 <b id="root-count-foot">81</b> 个词根 →</a>
+        <a href="roots.html?view=noroot">无词根词 <b id="noroot-count-foot">0</b> 个 →</a>
+        <a href="words.html">我的生词与完整词库 →</a>
+      </div>
+    </section>
+  </div>
+
+  <script src="assets/js/data/all_sets.js"></script>
+  <script src="assets/js/data/reading.js"></script>
+  <script src="assets/js/data/roots_meta.js"></script>
+  <script>
+    (function () {
+      const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      const sets = Object.values(window.ODH_SETS || {});
+      const readSets = Object.values((window.ODH_READING && window.ODH_READING.sets) || {});
+      const M = window.ODH_ROOTS_META || { roots: [], meta: {} };
+      const learn = JSON.parse(localStorage.getItem('odh.rootlearn.v1') || '{}');
+      const learnedN = Object.keys(learn.words || {}).length;
+
+      let answered = 0, rightTotal = 0, pending = 0, fixedN = 0;
+      let fixed = {};
+      try { fixed = JSON.parse(localStorage.getItem('odh.fixed.v1') || '{}'); } catch (e) {}
+      try {
+        const u = JSON.parse(localStorage.getItem('odh.unknown.v1') || '{}');
+        document.getElementById('wl-count').textContent = Object.values(u).filter(r => !(r && r.known)).length;
+      } catch (e) {}
+
+      sets.forEach(s => {
+        let ans = {};
+        try { ans = JSON.parse(localStorage.getItem('odh.answer.' + s.id) || '{}'); } catch (e) {}
+        const qmap = {};
+        s.parts.forEach(p => p.questions.forEach(q => { qmap[q.no] = q; }));
+        const submitted = localStorage.getItem('odh.submitted.' + s.id) === '1';
+        let done = 0, right = 0;
+        Object.keys(ans).forEach(no => {
+          const q = qmap[+no];
+          if (!q) return;
+          done++;
+          if (ans[no] === q.answerKey) right++;
+        });
+        s.parts.forEach(p => p.questions.forEach(q => {
+          if (!submitted) return;
+          const sel = ans[q.no];
+          if (sel === q.answerKey) return;
+          const key = s.id + ':' + q.no;
+          if (fixed[key]) fixedN++;
+          else pending++;
+        }));
+        answered += done;
+        rightTotal += right;
+      });
+
+      const qs = sets.reduce((n, s) => n + (s.qCount || 25), 0);
+      document.getElementById('stat-sets').textContent = Math.max(sets.length, readSets.length);
+      document.getElementById('stat-qs').textContent = qs;
+      document.getElementById('stat-sessions').textContent = new Set(sets.map(s => s.date).concat(readSets.map(s => s.date))).size;
+      document.getElementById('stat-roots').textContent = M.meta.roots || M.roots.length;
+      document.getElementById('root-count-mini').textContent = M.meta.roots || M.roots.length;
+      document.getElementById('root-count-foot').textContent = M.meta.roots || M.roots.length;
+      document.getElementById('noroot-count-foot').textContent = (M.meta.noroot || 0).toLocaleString();
+
+      document.getElementById('my-answered').textContent = answered;
+      document.getElementById('my-acc').textContent = answered ? Math.round(rightTotal / answered * 100) + '%' : '—';
+      document.getElementById('my-pending').textContent = pending;
+      document.getElementById('my-fixed').textContent = fixedN;
+
+      const grid = document.getElementById('root-mini-grid');
+      grid.innerHTML = M.roots.slice(0, 18).map(r => `<a class="root-mini" href="roots.html?root=${encodeURIComponent(r.k)}"
+        data-k="${esc(r.k)}" data-zh="${esc(r.zh)}" data-v="${esc((r.v || []).join(' '))}" data-s="${esc((r.samples || []).join(' ').toLowerCase())}">
+        <div class="rm-top"><span class="rm-k">${esc(r.k)}</span><span class="rm-n">${r.n} 词</span></div>
+        <div class="rm-z">${esc(r.zh)}</div>
+        <div class="rm-s">${esc((r.samples || []).join(' · '))}</div>
+      </a>`).join('');
+
+      const search = document.getElementById('home-search');
+      search.addEventListener('input', e => {
+        const q = e.target.value.trim().toLowerCase();
+        const cards = Array.from(grid.querySelectorAll('.root-mini'));
+        cards.forEach(c => {
+          const text = (c.dataset.k + ' ' + c.dataset.zh + ' ' + c.dataset.v + ' ' + c.dataset.s).toLowerCase();
+          c.style.display = !q || text.includes(q) ? '' : 'none';
+        });
+      });
+      search.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && search.value.trim()) location.href = 'roots.html?q=' + encodeURIComponent(search.value.trim());
+      });
+    })();
+  </script>
+</body>
+</html>

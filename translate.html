@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>翻译 · ODH 英语学习工具</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 26px 80px; }
+  .topbar { position: sticky; top: 0; }
+  [hidden] { display: none !important; }
+
+  .head { padding: 48px 0 12px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 36px; align-items: end; }
+  .kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 2px; color: var(--accent); font-weight: 700; }
+  .kicker::before { content: ""; width: 22px; height: 1px; background: var(--accent); }
+  .head h1 { margin: 14px 0 12px; font-family: var(--serif); font-size: 46px; line-height: 1.2; letter-spacing: -.5px; }
+  .head h1 em { font-style: normal; color: var(--accent); }
+  .head p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.9; max-width: 640px; }
+  .side { background: linear-gradient(135deg, #fffdf8, #f3efe6); border: 1px solid var(--line-strong); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .side h4 { margin: 0 0 10px; font-size: 11px; letter-spacing: 1.5px; color: var(--muted); }
+  .side .nums { display: flex; gap: 24px; flex-wrap: wrap; }
+  .side b { font-family: var(--serif); font-size: 25px; }
+  .side span { display: block; font-size: 10.5px; color: var(--muted); }
+  .side .tip { margin-top: 12px; font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+
+  .tr-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 26px 0 18px; }
+  #tr-years { display: flex; gap: 4px; flex-wrap: wrap; }
+  #tr-years button { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--bg-elev); font-size: 12.5px; color: var(--muted); }
+  #tr-years button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .tr-tools .hint { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+  #tr-list { display: flex; flex-direction: column; gap: 12px; }
+  .tr-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 15px; padding: 16px 18px; }
+  .tc-top { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+  .tc-top .date { font-size: 11.5px; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
+  .tc-top h3 { margin: 0; font-family: var(--serif); font-size: 20px; }
+  .tc-top .setno { font-size: 10.5px; background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 3px 8px; font-weight: 700; }
+  .tc-prompt { margin-top: 7px; font-size: 12.5px; line-height: 1.8; color: var(--ink-soft); }
+  .tc-foot { display: flex; align-items: center; gap: 9px; margin-top: 10px; flex-wrap: wrap; }
+  .tc-foot .pill { height: 31px; font-size: 12px; }
+  .tc-foot .st { font-size: 11.5px; color: var(--muted); }
+  .tc-foot .st.done { color: var(--ok); font-weight: 700; }
+  .tc-foot .st.part { color: var(--gold); font-weight: 700; }
+  .tc-foot .muted { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .empty-card { border: 1px dashed var(--line-strong); border-radius: 14px; padding: 46px 20px; text-align: center; color: var(--muted); font-size: 13px; background: var(--bg-elev); }
+
+  /* editor */
+  .tr-head { padding: 28px 0 14px; display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+  .backlink { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .backlink:hover { color: var(--accent); }
+  .tr-head h1 { margin: 0; font-family: var(--serif); font-size: 28px; line-height: 1.25; }
+  #set-sub { margin-top: 5px; font-size: 12px; color: var(--muted); }
+  .tr-head .right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tr-head select { height: 34px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--bg-elev); padding: 0 9px; font-size: 12px; color: var(--ink-soft); max-width: 245px; }
+  .ghost-btn { height: 34px; padding: 0 11px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--bg-elev); font-size: 12px; color: var(--muted); }
+  .ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ai-open { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--bg-elev); font-size: 12px; color: var(--accent); font-weight: 700; }
+
+  .tr-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.35fr); gap: 16px; align-items: start; margin-top: 8px; }
+  .panel { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
+  .panel h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: 1.4px; color: var(--muted); }
+  .prompt-zh { font-family: var(--serif); font-size: 17px; line-height: 2; color: #2a2e35; text-align: justify; }
+  .prompt-foot { margin-top: 12px; font-size: 11.5px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+  .editor-top { display: flex; align-items: baseline; gap: 8px; }
+  .editor-top h3 { flex: 1; }
+  .editor-top span { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #answer {
+    width: 100%; min-height: 280px; resize: vertical; border: 1px solid var(--line-strong); border-radius: 12px;
+    background: #fffdf9; padding: 14px 15px; font-family: var(--serif); font-size: 15.5px; line-height: 1.9;
+    color: var(--ink); outline: none;
+  }
+  #answer:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .editor-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .editor-actions button { height: 36px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--bg-elev); font-size: 12.5px; color: var(--ink-soft); }
+  .editor-actions button:hover { border-color: var(--accent); color: var(--accent); }
+  #submit-tr { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  #save-state { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+  #ref-panel { margin-top: 16px; }
+  #ref-panel.hide { display: none; }
+  .ref-en { font-family: var(--serif); font-size: 15.5px; line-height: 1.95; color: #2a2e35; text-align: justify; }
+  .ref-en .word { cursor: pointer; }
+
+  .res-card { margin-top: 16px; border: 1px solid var(--line); border-radius: 14px; padding: 16px 17px; background: #fff; }
+  .res-top { display: flex; align-items: center; gap: 14px; }
+  .res-score b { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--accent); }
+  .res-score span { font-size: 12px; color: var(--muted); margin-left: 3px; }
+  .res-grade strong { display: block; font-size: 14px; }
+  .res-grade span { font-size: 11px; color: var(--muted); }
+  .dims { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; }
+  .dim, .cov-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--muted); }
+  .dim > span, .cov-row > span { width: 68px; flex: 0 0 auto; }
+  .dim b, .cov-row b { width: 32px; text-align: right; color: var(--ink-soft); font-size: 11px; }
+  .bar { flex: 1; height: 7px; border-radius: 99px; background: var(--bg-deep); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 99px; background: var(--accent); }
+  .bar.sm { height: 5px; }
+  .cov { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .cov h5, .issues h5, .ai-rev h5 { margin: 0 0 8px; font-size: 10.5px; letter-spacing: 1.1px; color: var(--muted); }
+  .cov-row { margin-bottom: 4px; }
+  .issues { margin-top: 13px; padding-top: 12px; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 5px; }
+  .issue { font-size: 12px; line-height: 1.65; color: var(--ink-soft); display: flex; gap: 7px; align-items: baseline; }
+  .issue span { flex: 0 0 auto; font-size: 9.5px; font-weight: 800; border-radius: 99px; padding: 2px 7px; background: var(--bg-deep); color: var(--muted); }
+  .issue.g span { background: #fbeaea; color: var(--danger); }
+  .issue.m span { background: var(--gold-soft); color: var(--gold); }
+  .issue.w span { background: var(--accent-soft); color: var(--accent); }
+  .good { margin-top: 12px; font-size: 12px; color: var(--ok); }
+  .ai-row { display: flex; align-items: center; gap: 9px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); flex-wrap: wrap; }
+  .ai-btn { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; }
+  .ai-state { font-size: 11px; color: var(--muted); }
+  .ai-box { margin-top: 12px; padding: 12px 13px; border-radius: 11px; background: #f6fbf9; border: 1px solid rgba(15,118,110,.2); }
+  .ai-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .ai-head b { font-size: 12.5px; color: var(--accent); }
+  .ai-head span { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .ai-rev p { margin: 0; font-family: var(--serif); font-size: 13px; line-height: 1.8; color: var(--ink-soft); }
+  .ai-list { margin: 8px 0 0; padding-left: 17px; font-size: 12px; line-height: 1.7; color: var(--ink-soft); }
+
+  /* modal */
+  .modal { position: fixed; inset: 0; z-index: 80; background: rgba(23,26,31,.4); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal.on { display: flex; }
+  .modal-card { width: 460px; max-width: 100%; background: #fffdf9; border-radius: 16px; padding: 20px 22px; box-shadow: 0 30px 80px rgba(0,0,0,.25); }
+  .modal-card h3 { margin: 0 0 6px; font-family: var(--serif); font-size: 21px; }
+  .modal-card p { margin: 0 0 14px; font-size: 11.5px; line-height: 1.7; color: var(--muted); }
+  .modal-card label { display: block; font-size: 11px; color: var(--muted); margin: 10px 0 4px; }
+  .modal-card input { width: 100%; height: 34px; border: 1px solid var(--line-strong); border-radius: 8px; padding: 0 10px; font-size: 12.5px; background: #fff; color: var(--ink); }
+  .modal-foot { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-foot button { height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--bg-elev); font-size: 12px; }
+  .modal-foot .primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .modal-foot .danger { margin-left: auto; color: var(--danger); }
+
+  @media (max-width: 900px) {
+    .head { grid-template-columns: 1fr; gap: 22px; padding-top: 40px; }
+    .head h1 { font-size: 36px; }
+    .tr-grid { grid-template-columns: 1fr; }
+    .panel { padding: 17px 16px; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 14px 60px; }
+    .head h1 { font-size: 31px; }
+    .tr-head h1 { font-size: 23px; }
+    .tr-head .right { width: 100%; margin-left: 0; }
+    #answer { min-height: 230px; }
+    .prompt-zh { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="mark">O</span><span>ODH<small>ENGLISH LISTENING</small></span></a>
+    <span class="sep"></span>
+    <div class="crumb"><b>翻译</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="sets.html">听力题库</a>
+    <a class="pill" href="study.html">随机背单词</a>
+    <a class="pill" href="reading.html">阅读</a>
+    <a class="pill" href="words.html">单词库</a>
+    <a class="pill primary" href="translate.html?set=2026-06-1">开始翻译</a>
+  </header>
+
+  <div class="wrap">
+    <section id="list-view">
+      <div class="head">
+        <div>
+          <div class="kicker">ODH · TRANSLATION LAB</div>
+          <h1>汉译英，<br><em>写完就能判</em>。</h1>
+          <p>2023.06–2026.06 每期前两套真题翻译，中文原文完整录入。先自己写，再对照参考译文；本地评分检查语法、拼写与意思覆盖，配置自己的大模型 Key 后可开启 AI 精评。</p>
+        </div>
+        <aside class="side">
+          <h4>翻译题库</h4>
+          <div class="nums">
+            <div><b id="tr-n">0</b><span>套翻译题</span></div>
+            <div><b id="tr-n2">0</b><span>套可对照</span></div>
+          </div>
+          <div class="tip">每题都是 CET6 Part IV 段落翻译。评分只作练习参考，不替代人工阅卷。</div>
+        </aside>
+      </div>
+      <div class="tr-tools">
+        <div id="tr-years"></div>
+        <span class="hint">建议先把中文段落通读一遍，再分句翻译。</span>
+      </div>
+      <div id="tr-list"></div>
+    </section>
+
+    <section id="editor-view" hidden>
+      <div class="tr-head">
+        <div>
+          <a class="backlink" href="translate.html">← 翻译题库</a>
+          <h1 id="set-title">汉译英</h1>
+          <div id="set-sub"></div>
+        </div>
+        <div class="right">
+          <button class="ghost-btn" id="prev-set">上一套</button>
+          <select id="tr-set" aria-label="切换套卷"></select>
+          <button class="ghost-btn" id="next-set">下一套</button>
+          <button class="ai-open" id="ai-settings" onclick="openAI()">AI 设置</button>
+        </div>
+      </div>
+
+      <div class="tr-grid">
+        <div class="panel">
+          <h3>中文原文 · PART IV</h3>
+          <div class="prompt-zh" id="prompt-text"></div>
+          <div class="prompt-foot"><span id="prompt-len"></span><span>建议 100–180 词</span></div>
+        </div>
+        <div class="panel">
+          <div class="editor-top"><h3>你的译文</h3><span id="word-count">0 words</span></div>
+          <textarea id="answer" placeholder="在这里输入英文译文……"></textarea>
+          <div class="editor-actions">
+            <button id="save-draft">保存草稿</button>
+            <button id="submit-tr">提交批改</button>
+            <button id="show-ref">对照参考译文</button>
+            <button id="reset-tr">清空</button>
+            <span id="save-state"></span>
+          </div>
+          <div id="result"></div>
+        </div>
+      </div>
+
+      <div id="ref-panel" class="panel hide">
+        <h3>参考译文 · 可点词查询</h3>
+        <div id="ref-en"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal" id="ai-modal">
+    <div class="modal-card">
+      <h3>AI 精评设置</h3>
+      <p>Key 只保存在本机浏览器 localStorage，不会上传到本项目的服务器。支持 OpenAI 兼容接口（DeepSeek、OpenAI 等）。</p>
+      <label>接口地址 Base URL</label>
+      <input id="ai-base" placeholder="https://api.deepseek.com/v1" autocomplete="off" />
+      <label>模型名</label>
+      <input id="ai-model" placeholder="deepseek-chat" autocomplete="off" />
+      <label>API Key</label>
+      <input id="ai-key" type="password" placeholder="sk-..." autocomplete="off" />
+      <div class="modal-foot">
+        <button class="primary" id="ai-save">保存</button>
+        <button id="ai-close">取消</button>
+        <button class="danger" id="ai-clear">清除 Key</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/data/words.js"></script>
+  <script src="assets/js/speech.js"></script>
+  <script src="assets/js/wordpop.js"></script>
+  <script src="assets/js/data/reading.js"></script>
+  <script src="assets/js/data/transyn.js"></script>
+  <script src="assets/js/translate.js"></script>
+</body>
+</html>

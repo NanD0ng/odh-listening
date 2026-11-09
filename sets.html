@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>听力题库 · ODH 英语学习工具</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 26px 70px; }
+  .topbar { position: sticky; top: 0; }
+  .head { padding: 48px 0 24px; display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .head h1 { margin: 0; font-family: var(--serif); font-size: 44px; letter-spacing: .5px; }
+  .head p { margin: 0; max-width: 560px; font-size: 13px; line-height: 1.8; color: var(--muted); padding-bottom: 5px; }
+  .head .stats { margin-left: auto; display: flex; gap: 24px; padding-bottom: 4px; }
+  .stat b { display: block; font-family: var(--serif); font-size: 25px; }
+  .stat span { font-size: 11px; color: var(--muted); }
+
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin: 8px 0 16px; }
+  .sec-head h2 { margin: 0; font-size: 18px; letter-spacing: .2px; }
+  .sec-head span { font-size: 12px; color: var(--muted); }
+  .sets { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+  .set-card {
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 20px 16px; transition: transform .16s ease, box-shadow .16s ease, border-color .16s;
+    display: flex; flex-direction: column; min-height: 190px;
+  }
+  .set-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-strong); }
+  .set-card .row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .wordset-link {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10.5px; color: var(--gold); border: 1px solid #e7c98e;
+    background: var(--gold-soft); border-radius: 99px; padding: 3px 9px; font-weight: 700;
+  }
+  .wordset-link:hover { border-color: var(--gold); }
+  .wordset-link b { font-size: 10.5px; }
+  .set-card .tag-d { font-size: 10.5px; letter-spacing: .6px; background: var(--accent-soft); color: var(--accent); padding: 3px 8px; border-radius: 99px; font-weight: 700; }
+  .set-card h3 { margin: 10px 0 6px; font-family: var(--serif); font-size: 21px; letter-spacing: .1px; line-height: 1.45; }
+  .set-card h3 .date { display: block; font-family: var(--ui); font-size: 11px; letter-spacing: 1.2px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+  .set-card .desc { font-size: 12.3px; color: var(--muted); line-height: 1.7; }
+  .set-card .facts { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted); margin: 14px 0 16px; }
+  .set-card .facts b { color: var(--ink-soft); font-weight: 600; }
+  .set-card .actions { margin-top: auto; display: flex; gap: 8px; align-items: center; }
+  .set-card .actions .pill { height: 33px; font-size: 12.5px; }
+  .progress-note { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .notes { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 20px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; }
+  .notes h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: 1.2px; color: var(--muted); }
+  .notes p { margin: 0 0 6px; font-size: 12px; line-height: 1.8; color: var(--muted); }
+  .notes a { color: var(--accent); border-bottom: 1px solid rgba(15,118,110,.3); }
+  @media (max-width: 760px) {
+    .head { padding-top: 30px; }
+    .head h1 { font-size: 36px; }
+    .head .stats { margin-left: 0; gap: 18px; }
+    .notes { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="mark">O</span>
+      <span>ODH<small>ENGLISH LISTENING</small></span>
+    </a>
+    <span class="sep"></span>
+    <div class="crumb"><a href="index.html">首页</a><span>/</span><b>听力题库</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="roots.html">词根记忆法</a>
+    <a class="pill" href="words.html">单词库</a>
+    <a class="pill primary" href="practice.html?set=jun2025">开始精听</a>
+  </header>
+
+  <div class="wrap">
+    <section class="head">
+      <div>
+        <div class="kicker" style="display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:2px;color:var(--accent);font-weight:700">ODH · LISTENING LIBRARY</div>
+        <h1>听力题库</h1>
+        <p>按考期整理六级听力真题，每套 25 题、7 篇录音。进入精听后可切换 Section、对照原文、同步答案与音频。</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="stat-sets">0</b><span>套真题</span></div>
+        <div class="stat"><b id="stat-qs">0</b><span>道听力题</span></div>
+        <div class="stat"><b id="stat-sessions">0</b><span>个考期</span></div>
+      </div>
+    </section>
+
+    <div class="sec-head"><h2>全部套卷</h2><span>同考期第一套在前 · 2026.06 第二套暂缺音频</span></div>
+    <section class="sets" id="sets"></section>
+
+    <section class="notes">
+      <div>
+        <h4>音频与资料</h4>
+        <p>音频取自 B 站公开的真题听力视频，已下载到本地 <b>assets/audio</b>，不依赖外链播放器。</p>
+        <p>原文、题目、答案与解析按公开真题资料整理，部分题目解析为便于精听做了精简；发现出入可直接改 <b>assets/js/data</b> 下的数据文件。</p>
+        <p>套号沿用音频来源视频的标注；不同机构对同一套卷的编号可能不同，以音频与原文能对应为准。</p>
+      </div>
+      <div>
+        <h4>使用提示</h4>
+        <p>空格播放 / 暂停，← → 上一句 / 下一句，L 单句循环，B 设 A-B 复读，F 专注全屏，Esc 退出。点单词查词典需要联网；音频与原文完全离线。</p>
+        <p>答题记录保存在本机浏览器，换设备不会同步。错题可在首页“我的学习”或 <a href="review.html">错题本</a> 中订正。</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="assets/js/data/all_sets.js"></script>
+  <script>
+    (function () {
+      const box = document.getElementById('sets');
+      const byTime = (a, b) => {
+        const ao = a.order || 0, bo = b.order || 0;
+        return (Math.floor(bo / 100) - Math.floor(ao / 100)) || (ao - bo);
+      };
+      const sets = Object.values(window.ODH_SETS || {}).sort(byTime);
+      const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      const KIND = { A: '长对话', B: '听力篇章', C: '讲座/讲话' };
+      let unknown = {};
+      try { unknown = JSON.parse(localStorage.getItem('odh.unknown.v1') || '{}'); } catch (e) {}
+      const setUnknownCount = s => Object.keys(unknown).filter(w => {
+        const rec = unknown[w];
+        if (!rec || rec.known) return false;
+        return (rec.sets && rec.sets.includes(s.id)) || (rec.sample && rec.sample.set === s.id);
+      }).length;
+      const cards = [];
+      sets.forEach(s => {
+        let ans = {};
+        try { ans = JSON.parse(localStorage.getItem('odh.answer.' + s.id) || '{}'); } catch (e) {}
+        const qmap = {};
+        s.parts.forEach(p => p.questions.forEach(q => { qmap[q.no] = q; }));
+        let done = 0, right = 0;
+        Object.keys(ans).forEach(no => {
+          const q = qmap[+no];
+          if (!q) return;
+          done++;
+          if (ans[no] === q.answerKey) right++;
+        });
+        const mins = Math.round((s.duration || 0) / 60);
+        const bits = (s.title || '').split('·');
+        const dateTxt = (bits[0] || '').trim();
+        const nameTxt = (bits[1] || s.title || '').trim();
+        const submitted = localStorage.getItem('odh.submitted.' + s.id) === '1';
+        const ucount = setUnknownCount(s);
+        const showWords = submitted || ucount > 0;
+        cards.push({ order: s.order || 0, html: `<article class="set-card">
+          <div class="row1"><span class="tag-d">CET-6</span>
+            <span class="tag" style="font-size:10.5px">${esc(s.date)}</span>
+            ${done ? `<span class="tag ok" style="font-size:10.5px">已作答 ${done}/25 · 正确 ${right}</span>` : ''}
+            ${showWords ? `<a class="wordset-link" href="setwords.html?set=${s.id}">陌生单词集 <b>${ucount}</b></a>` : ''}
+          </div>
+          <h3><span class="date">${esc(dateTxt)}</span>${esc(nameTxt)}</h3>
+          <div class="desc">Section A ${KIND.A} 2 篇 · Section B ${KIND.B} 2 篇 · Section C ${KIND.C} 3 篇</div>
+          <div class="facts"><span><b>25</b> 题</span><span><b>${mins}</b> 分钟</span><span><b>7</b> 篇录音</span></div>
+          <div class="actions">
+            <a class="pill primary" href="practice.html?set=${s.id}">精听</a>
+            <a class="pill" href="practice.html?set=${s.id}#quiz">答题</a>
+            <span class="progress-note">${esc(s.source || '')}</span>
+          </div>
+        </article>` });
+      });
+      if (!sets.some(s => (s.order || 0) === 20260602)) cards.push({ order: 20260602, html: `<article class="set-card" style="opacity:.62">
+        <div class="row1"><span class="tag-d" style="background:#eee8dc;color:#8a8378">CET-6</span>
+          <span class="tag" style="font-size:10.5px">2026-06</span>
+        </div>
+        <h3><span class="date">2026 年 6 月</span>六级听力第二套</h3>
+        <div class="desc">原文、题目与答案已整理，但暂未找到可用的完整原声音频；按约定跳过该套，不作为练习入口。</div>
+        <div class="facts"><span><b>25</b> 题</span><span><b>暂缺</b> 音频</span></div>
+        <div class="actions"><span class="tag" style="background:#f3ece1;color:#8a6a3a">暂缺 · 不编造</span></div>
+      </article>` });
+      cards.sort((a, b) => a.order - b.order);
+      // keep the same newest-first ordering rule as before
+      cards.sort((a, b) => {
+        const ao = a.order || 0, bo = b.order || 0;
+        return (Math.floor(bo / 100) - Math.floor(ao / 100)) || (ao - bo);
+      });
+      box.innerHTML = cards.map(c => c.html).join('');
+      const qs = sets.reduce((n, s) => n + (s.qCount || 25), 0);
+      document.getElementById('stat-sets').textContent = sets.length;
+      document.getElementById('stat-qs').textContent = qs;
+      document.getElementById('stat-sessions').textContent = new Set(sets.map(s => s.date)).size;
+    })();
+  </script>
+</body>
+</html>

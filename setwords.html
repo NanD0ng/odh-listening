@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>陌生单词集 · ODH 英语学习工具</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px 80px; }
+  .topbar { position: sticky; top: 0; }
+  .head { padding: 42px 0 18px; display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+  .head h1 { margin: 0; font-family: var(--serif); font-size: 40px; letter-spacing: .5px; }
+  .head .sub { font-size: 12.5px; color: var(--muted); line-height: 1.7; padding-bottom: 4px; }
+  .head .sub b { color: var(--ink); }
+  .back { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); border: 1px solid var(--line-strong); background: var(--bg-elev); border-radius: 8px; padding: 5px 10px; }
+  .back:hover { border-color: var(--accent); color: var(--accent); }
+  .sw-progress { height: 5px; background: var(--bg-deep); border-radius: 99px; overflow: hidden; margin-bottom: 22px; }
+  .sw-progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+  .sw-shell { max-width: 720px; margin: 0 auto; }
+  .sw-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 18px; padding: 24px 26px 22px; box-shadow: var(--shadow); }
+  .sw-top { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+  .sw-top .setname { color: var(--ink-soft); font-weight: 600; }
+  .sw-top .cnt { margin-left: auto; }
+  .sw-wordrow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .sw-word { font-family: var(--serif); font-size: 52px; font-weight: 700; line-height: 1.15; word-break: break-word; }
+  .sw-speak { width: 37px; height: 37px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--bg-elev); color: var(--accent); display: grid; place-items: center; flex: 0 0 auto; }
+  .sw-speak:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .sw-speak svg { width: 17px; height: 17px; }
+  .sw-ph { text-align: center; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .sw-lemma { text-align: center; margin-top: 4px; font-size: 10.5px; color: var(--muted); }
+  .sw-context { margin-top: 18px; padding: 11px 13px; border-left: 3px solid var(--line-strong); background: #fbfaf6; border-radius: 0 9px 9px 0; font-family: var(--serif); font-size: 14.5px; line-height: 1.8; color: #4b515b; text-align: left; }
+  .sw-context .lab { display: block; font-family: var(--ui); font-size: 10px; letter-spacing: 1.2px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+  .sw-context .hl { color: var(--gold); font-weight: 700; background: var(--gold-soft); border-radius: 3px; padding: 0 2px; }
+  .sw-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .sw-btn { flex: 1; height: 45px; border-radius: 11px; border: 1px solid var(--line-strong); background: #fff; font-size: 14px; font-weight: 700; }
+  .sw-btn.know { color: var(--ok); border-color: var(--ok); }
+  .sw-btn.dont { color: var(--danger); border-color: var(--danger); }
+  .sw-btn:hover { background: var(--bg-deep); }
+  .sw-btn:disabled { opacity: .45; pointer-events: none; }
+  .sw-answer { display: none; margin-top: 18px; padding: 14px 15px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-align: left; }
+  .sw-answer.on { display: block; }
+  .sw-answer .lab { font-size: 10px; letter-spacing: 1.2px; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+  .sw-answer .mean { font-size: 14px; line-height: 1.75; color: var(--ink-soft); }
+  .sw-answer .mean .pos { color: var(--accent); font-style: italic; margin-right: 5px; }
+  .sw-answer .zh { margin-top: 8px; font-size: 12.5px; line-height: 1.75; color: var(--muted); }
+  .sw-answer .status { margin-top: 10px; font-size: 11.5px; font-weight: 700; }
+  .sw-answer .status.ok { color: var(--ok); }
+  .sw-answer .status.bad { color: var(--danger); }
+  .sw-next { display: none; margin: 18px auto 0; height: 43px; padding: 0 26px; border-radius: 10px; border: 0; background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 700; }
+  .sw-next.on { display: block; }
+  .empty-card { border: 1px dashed var(--line-strong); border-radius: 14px; padding: 48px 20px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.9; background: var(--bg-elev); }
+  .summary { text-align: center; max-width: 620px; margin: 0 auto; }
+  .summary h2 { font-family: var(--serif); font-size: 30px; margin: 0 0 8px; }
+  .summary p { font-size: 13px; color: var(--muted); line-height: 1.8; }
+  .summary .nums { display: flex; justify-content: center; gap: 30px; margin: 22px 0; }
+  .summary .nums b { display: block; font-family: var(--serif); font-size: 28px; }
+  .summary .nums span { font-size: 10.5px; color: var(--muted); }
+  .summary .nums .ok b { color: var(--ok); }
+  .summary .nums .bad b { color: var(--danger); }
+  .summary .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .summary .btns a, .summary .btns button { height: 40px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg-elev); color: var(--ink-soft); font-size: 12.5px; font-weight: 600; }
+  .summary .btns .primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 15px 60px; }
+    .head { padding-top: 28px; }
+    .head h1 { font-size: 32px; }
+    .sw-card { padding: 18px 16px; }
+    .sw-word { font-size: 40px; }
+    .sw-actions { flex-direction: column; }
+    .sw-btn { flex: 0 0 auto; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="mark">O</span>
+      <span>ODH<small>ENGLISH LISTENING</small></span>
+    </a>
+    <span class="sep"></span>
+    <div class="crumb"><a href="index.html">首页</a><span>/</span><a href="sets.html">听力题库</a><span>/</span><b>陌生单词集</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="review.html">错题本</a>
+    <a class="pill primary" href="sets.html">听力题库</a>
+  </header>
+
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <a class="back" href="sets.html">← 听力题库</a>
+        <h1 id="set-title" style="margin-top:12px">陌生单词集</h1>
+        <div class="sub" id="set-sub">从这套卷子里标记过的陌生单词</div>
+      </div>
+    </div>
+    <div class="sw-progress"><i id="sw-progress"></i></div>
+    <div id="app"></div>
+  </div>
+
+  <script src="assets/js/data/all_sets.js"></script>
+  <script src="assets/js/data/words.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const SETS = window.ODH_SETS || {};
+    const WORDS = window.ODH_WORDS || {};
+    const params = new URLSearchParams(location.search);
+    const setId = SETS[params.get('set')] ? params.get('set') : Object.keys(SETS)[0];
+    const S = SETS[setId];
+    const UNKNOWN_KEY = 'odh.unknown.v1';
+    const WRONG_KEY = 'odh.wordwrong.v1';
+    const $ = s => document.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const readJSON = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch (e) { return d; } };
+    const writeJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+    const fmt = t => {
+      t = Math.max(0, Math.floor(t || 0));
+      return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+    };
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    if (!S) {
+      $('#app').innerHTML = '<div class="empty-card">没有找到这套卷子。</div>';
+      return;
+    }
+    $('#set-title').textContent = '陌生单词集';
+    $('#set-sub').innerHTML = `${esc(S.title)} · 只显示这套里标记过、且还没标为熟悉的单词`;
+
+    function speak(text) {
+      if (!text || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US'; u.rate = 0.88;
+        const vs = window.speechSynthesis.getVoices() || [];
+        const v = vs.find(x => /en[-_]US/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang));
+        if (v) u.voice = v;
+        window.speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+    function lemmaCandidates(word) {
+      const w = word.toLowerCase();
+      const out = new Set([w]);
+      const add = x => { if (x && x.length > 1) out.add(x); };
+      add(w + 's'); add(w + 'es'); add(w + 'ed'); add(w + 'd'); add(w + 'ing');
+      if (w.endsWith('e')) add(w.slice(0, -1) + 'ing');
+      if (w.endsWith('y')) { add(w.slice(0, -1) + 'ies'); add(w.slice(0, -1) + 'ied'); }
+      if (w.endsWith('ed')) { add(w.slice(0, -2)); add(w.slice(0, -1)); }
+      if (w.endsWith('ing')) { add(w.slice(0, -3)); add(w.slice(0, -3) + 'e'); }
+      if (w.endsWith('ly')) add(w.slice(0, -2));
+      if (w.endsWith('er')) add(w.slice(0, -2));
+      if (/([^aeiou])\1(ed|ing|er|est)$/.test(w)) add(w.replace(/([^aeiou])\1(ed|ing|er|est)$/, '$1'));
+      return out;
+    }
+    function markRootFamiliar(w, level, relearn) {
+      try {
+        const learn = readJSON('odh.rootlearn.v1', { words: {}, roots: {}, familiar: {} });
+        learn.familiar = learn.familiar || {};
+        const old = learn.familiar[w] || {};
+        learn.familiar[w] = {
+          level, at: Date.now(), root: old.root || '', n: old.n || 0,
+          relearn: Math.max(0, relearn || 0),
+        };
+        writeJSON('odh.rootlearn.v1', learn);
+      } catch (e) {}
+    }
+    function lookup(word) {
+      const key = word.toLowerCase();
+      if (WORDS[key]) return WORDS[key];
+      for (const c of lemmaCandidates(key)) if (WORDS[c]) return WORDS[c];
+      return null;
+    }
+    function senses(entry, n) {
+      if (!entry) return '离线词库未收录';
+      return (entry.m || []).slice(0, n || 2).map(m => `<div><span class="pos">${esc(m[0])}</span>${esc(m[1])}</div>`).join('');
+    }
+    function sentenceIndex() {
+      const idx = Object.create(null);
+      S.parts.forEach(p => p.paragraphs.forEach(pa => pa.sentences.forEach(s => {
+        const toks = (s.text.toLowerCase().match(/[a-z][a-z'-]*/g) || []);
+        toks.forEach(t => {
+          if (!idx[t]) idx[t] = { sentence: s.text, zh: pa.zh || '', part: p.qFrom, sid: s.i, start: s.start };
+        });
+      })));
+      return idx;
+    }
+    const SIDX = sentenceIndex();
+    function findContext(w) {
+      if (SIDX[w]) return SIDX[w];
+      for (const c of lemmaCandidates(w)) if (SIDX[c]) return SIDX[c];
+      return null;
+    }
+    function collect() {
+      const u = readJSON(UNKNOWN_KEY, {});
+      const items = [];
+      Object.keys(u).forEach(w => {
+        const rec = u[w];
+        if (!rec || rec.known) return;
+        const inSet = (rec.sets && rec.sets.includes(setId)) || (rec.sample && rec.sample.set === setId);
+        if (!inSet) return;
+        const entry = lookup(w);
+        const ctx = (rec.sample && rec.sample.set === setId && rec.sample.sentence)
+          ? { sentence: rec.sample.sentence, zh: rec.sample.zh || '', part: rec.sample.part, sid: rec.sample.sid, start: null }
+          : findContext(w);
+        const parts = ctx ? S.parts.find(p => p.qFrom === ctx.part) : null;
+        const ss = parts ? parts.paragraphs.flatMap(pa => pa.sentences) : [];
+        const sent = ctx && ctx.sid != null ? ss[ctx.sid] : null;
+        items.push({
+          w, rec, entry, ctx,
+          start: ctx && ctx.start != null ? ctx.start : (sent ? sent.start : null),
+          sentence: ctx ? ctx.sentence : '',
+          zh: ctx ? ctx.zh : '',
+        });
+      });
+      items.sort((a, b) => (a.start == null ? Infinity : a.start) - (b.start == null ? Infinity : b.start) || a.w.localeCompare(b.w));
+      return items;
+    }
+
+    function highlightSentence(sentence, word) {
+      const forms = Array.from(lemmaCandidates(word)).sort((a, b) => b.length - a.length);
+      const re = new RegExp('\\b(' + forms.map(f => f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'ig');
+      return esc(sentence).replace(re, '<span class="hl">$1</span>');
+    }
+
+    let items = collect();
+    let idx = 0, answered = false, results = [];
+
+    function renderProgress() {
+      $('#sw-progress').style.width = items.length ? Math.round(idx / items.length * 100) + '%' : '0%';
+    }
+    function renderEmpty() {
+      $('#app').innerHTML = `<div class="empty-card">这套卷子还没有标记过陌生单词。<br>去精听页点开任意单词，点「陌」之后，这里就会按真题原文顺序出现。</div>`;
+      renderProgress();
+    }
+    function renderSummary() {
+      const know = results.filter(r => r.kind === 'know').length;
+      const dont = results.filter(r => r.kind === 'dont').length;
+      const remain = items.filter(x => !x.rec.known).length;
+      $('#app').innerHTML = `<div class="summary">
+        <h2>这一轮过完了</h2>
+        <p>${esc(S.short || S.title)} · 共 ${items.length} 个陌生词<br>认识的词会从这套陌生词里移除；不认识的词已加入错题本。</p>
+        <div class="nums">
+          <div class="ok"><b>${know}</b><span>认识</span></div>
+          <div class="bad"><b>${dont}</b><span>不认识</span></div>
+          <div><b>${remain}</b><span>仍待复习</span></div>
+        </div>
+        <div class="btns">
+          ${remain ? '<button class="primary" id="again">再背不认识的 →</button>' : ''}
+          <a href="review.html">去错题本</a>
+          <a href="sets.html">返回听力题库</a>
+        </div>
+      </div>`;
+      renderProgress();
+      const again = $('#again');
+      if (again) again.addEventListener('click', () => {
+        items = collect();
+        idx = 0; answered = false; results = [];
+        if (!items.length) renderEmpty(); else renderCard();
+      });
+    }
+    function renderCard() {
+      if (!items.length) { renderEmpty(); return; }
+      if (idx >= items.length) { renderSummary(); return; }
+      const item = items[idx];
+      const entry = item.entry;
+      const shown = item.w;
+      const pos = entry && entry.m && entry.m[0] ? entry.m[0][0] : '';
+      const meanHtml = senses(entry, 2);
+      const lemmaNote = entry && entry.w && entry.w !== item.w ? `<div class="sw-lemma">原形 · ${esc(entry.w)}</div>` : '';
+      $('#app').innerHTML = `<div class="sw-shell"><div class="sw-card">
+        <div class="sw-top"><span class="setname">${esc(S.short || S.title)}</span><span>第 ${idx + 1} / ${items.length} 个</span><span class="cnt">${item.ctx && item.start != null ? fmt(item.start) : ''}</span></div>
+        <div class="sw-wordrow">
+          <div class="sw-word">${esc(shown)}</div>
+          <button class="sw-speak" id="sw-speak" title="朗读单词" aria-label="朗读单词"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h4l5 4V5.5l-5 4H4z"/><path d="M16 9a4.5 4.5 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
+        </div>
+        ${entry && entry.p ? `<div class="sw-ph">${esc(entry.p.split(/[;；]/)[0])}</div>` : ''}
+        ${lemmaNote}
+        ${item.sentence ? `<div class="sw-context"><span class="lab">真题原句</span>${highlightSentence(item.sentence, item.w)}</div>` : `<div class="sw-context"><span class="lab">真题原句</span>这套里没有定位到包含该词的原句。</div>`}
+        <div class="sw-actions">
+          <button class="sw-btn know" data-sw="know">认识</button>
+          <button class="sw-btn dont" data-sw="dont">不认识</button>
+        </div>
+        <div class="sw-answer" id="sw-answer">
+          <div class="lab">答案</div>
+          <div class="mean">${meanHtml}</div>
+          ${entry && entry.w && entry.w !== item.w ? `<div class="zh">该词按原形 ${esc(entry.w)} 查义</div>` : ''}
+          ${item.zh ? `<div class="zh">句意：${esc(item.zh)}</div>` : ''}
+          <div class="status" id="sw-status"></div>
+        </div>
+        <button class="sw-next" id="sw-next">下一个 →</button>
+      </div></div>`;
+      renderProgress();
+      $('#sw-speak').addEventListener('click', () => speak(shown));
+      $$('#app [data-sw]').forEach(b => b.addEventListener('click', () => answer(b.dataset.sw)));
+      $('#sw-next').addEventListener('click', () => {
+        if (!answered) return;
+        idx++;
+        answered = false;
+        renderCard();
+      });
+    }
+
+    function answer(kind) {
+      if (answered) return;
+      answered = true;
+      const item = items[idx];
+      const u = readJSON(UNKNOWN_KEY, {});
+      if (u[item.w]) {
+        u[item.w].known = kind === 'know';
+        u[item.w].lastAt = Date.now();
+        writeJSON(UNKNOWN_KEY, u);
+      }
+      item.rec.known = kind === 'know';
+      markRootFamiliar(item.w, kind === 'know' ? 'familiar' : 'unknown', kind === 'know' ? 0 : 3);
+      const wrong = readJSON(WRONG_KEY, {});
+      if (kind === 'know') {
+        if (wrong[item.w]) { delete wrong[item.w]; writeJSON(WRONG_KEY, wrong); }
+      } else {
+        const prev = wrong[item.w] || { count: 0 };
+        prev.count = (prev.count || 0) + 1;
+        prev.lastAt = Date.now();
+        prev.set = setId;
+        prev.setTitle = S.short || S.title;
+        prev.sentence = item.sentence || '';
+        prev.zh = item.zh || '';
+        prev.meaning = item.entry ? (item.entry.m || []).slice(0, 2).map(m => `${m[0]} ${m[1]}`).join('；') : '';
+        prev.pos = item.entry && item.entry.m && item.entry.m[0] ? item.entry.m[0][0] : '';
+        prev.lemma = item.entry && item.entry.w && item.entry.w !== item.w ? item.entry.w : '';
+        wrong[item.w] = prev;
+        writeJSON(WRONG_KEY, wrong);
+      }
+      results.push({ kind });
+      $$('#app [data-sw]').forEach(b => { b.disabled = true; });
+      $('#sw-answer').classList.add('on');
+      const status = $('#sw-status');
+      status.className = 'status ' + (kind === 'know' ? 'ok' : 'bad');
+      status.textContent = kind === 'know' ? '已标为熟悉，也从错题本移除了' : '已加入错题本，并保留在这套陌生词里';
+      $('#sw-next').classList.add('on');
+      $('#sw-next').textContent = idx + 1 >= items.length ? '查看总结 →' : '下一个 →';
+    }
+
+    if (!items.length) renderEmpty();
+    else renderCard();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>随机背单词 · ODH 英语学习工具</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body {
+    overflow: auto;
+    min-height: 100vh;
+    background:
+      radial-gradient(900px 620px at 8% -8%, rgba(15,118,110,.18), transparent 62%),
+      radial-gradient(760px 540px at 96% 8%, rgba(184,145,75,.16), transparent 64%),
+      radial-gradient(700px 600px at 45% 108%, rgba(75,104,150,.12), transparent 62%),
+      #f7f4ed;
+  }
+  .topbar { position: sticky; top: 0; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 26px 130px; position: relative; z-index: 1; }
+  .kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 2px; color: var(--accent); font-weight: 700; }
+  .kicker::before { content: ""; width: 22px; height: 1px; background: var(--accent); }
+
+  .setup { padding: 54px 0 30px; }
+  .setup h1 { margin: 12px 0 10px; font-family: var(--serif); font-size: 42px; line-height: 1.25; letter-spacing: -.5px; }
+  .setup h1 em { font-style: normal; color: var(--accent); }
+  .setup p { margin: 0 0 24px; max-width: 640px; color: var(--ink-soft); font-size: 14px; line-height: 1.9; }
+  .setup-box {
+    background: linear-gradient(135deg, rgba(255,255,255,.72), rgba(255,255,255,.4));
+    border: 1px solid rgba(255,255,255,.85); border-radius: 24px;
+    padding: 22px 24px; max-width: 680px;
+    box-shadow: 0 24px 70px rgba(31,45,61,.10), inset 0 1px 0 rgba(255,255,255,.9);
+    backdrop-filter: blur(26px) saturate(150%);
+    -webkit-backdrop-filter: blur(26px) saturate(150%);
+  }
+  .setup-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .setup-line .lab { width: 52px; font-size: 11px; letter-spacing: 1px; color: var(--muted); font-weight: 700; flex: 0 0 auto; }
+  .choice { height: 33px; padding: 0 13px; border: 1px solid rgba(255,255,255,.85); background: rgba(255,255,255,.6); border-radius: 999px; font-size: 12.5px; color: var(--ink-soft); transition: .18s; }
+  .choice:hover { border-color: rgba(15,118,110,.35); }
+  .choice.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; box-shadow: 0 6px 18px rgba(15,118,110,.22); }
+  .setup-go { height: 42px; padding: 0 22px; border: 0; background: var(--accent); color: #fff; border-radius: 999px; font-size: 13.5px; font-weight: 700; margin-top: 6px; box-shadow: 0 10px 26px rgba(15,118,110,.22); }
+  .setup-stats { display: flex; gap: 26px; margin-top: 22px; flex-wrap: wrap; }
+  .setup-stats b { font-family: var(--serif); font-size: 22px; display: block; line-height: 1.2; }
+  .setup-stats span { font-size: 10.5px; color: var(--muted); }
+
+  .study-card {
+    margin-top: 26px;
+    position: relative;
+    background: linear-gradient(135deg, rgba(255,255,255,.74), rgba(255,255,255,.42));
+    border: 1px solid rgba(255,255,255,.86);
+    border-radius: 30px;
+    box-shadow: 0 34px 90px rgba(31,45,61,.14), 0 2px 10px rgba(31,45,61,.04), inset 0 1px 0 rgba(255,255,255,.92);
+    backdrop-filter: blur(30px) saturate(165%);
+    -webkit-backdrop-filter: blur(30px) saturate(165%);
+    overflow: hidden;
+  }
+  .study-card::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(120deg, rgba(255,255,255,.5), transparent 42%);
+  }
+  .card-top {
+    position: relative; display: flex; align-items: center; gap: 10px; padding: 15px 28px;
+    border-bottom: 1px solid rgba(255,255,255,.66);
+    background: rgba(255,255,255,.28);
+  }
+  .card-top .idx { font-size: 11px; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
+  .card-top .tag { font-size: 10px; background: rgba(15,118,110,.11); color: var(--accent); padding: 3px 9px; border-radius: 999px; font-weight: 700; }
+  .card-top .spacer { flex: 1; }
+  .card-top button { border: 1px solid rgba(255,255,255,.9); background: rgba(255,255,255,.55); border-radius: 999px; height: 29px; padding: 0 11px; font-size: 11px; color: var(--muted); }
+  .card-top button:hover { color: var(--accent); border-color: rgba(15,118,110,.3); }
+
+  .card-body { position: relative; padding: 32px 34px 26px; }
+  .word-row { display: flex; align-items: flex-start; gap: 16px; }
+  .word-main { flex: 1; min-width: 0; }
+  .word { font-family: var(--serif); font-size: 58px; font-weight: 700; line-height: 1.1; letter-spacing: -1px; word-break: break-word; color: #16191f; }
+  .phon { margin-top: 6px; font-size: 13px; color: rgba(60,66,75,.62); letter-spacing: .6px; }
+  .speak {
+    width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,255,255,.92);
+    background: rgba(255,255,255,.62); color: var(--accent); font-size: 16px; display: grid; place-items: center; flex: 0 0 auto;
+    box-shadow: 0 10px 24px rgba(15,118,110,.13), inset 0 1px 0 rgba(255,255,255,.9);
+    backdrop-filter: blur(12px); transition: transform .18s, box-shadow .18s;
+  }
+  .speak:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(15,118,110,.2); background: rgba(15,118,110,.1); }
+  .level-pill { flex: 0 0 auto; font-size: 10px; border-radius: 999px; padding: 4px 10px; background: rgba(255,255,255,.5); color: var(--muted); font-weight: 700; border: 1px solid rgba(255,255,255,.8); }
+  .level-pill.familiar { background: rgba(227,242,232,.8); color: #137a5b; }
+  .level-pill.fuzzy { background: rgba(253,241,220,.82); color: #a66a12; }
+  .level-pill.unknown { background: rgba(251,234,234,.82); color: #b52a35; }
+
+  .card-grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: 30px; margin-top: 26px; }
+  .sec { margin-bottom: 19px; }
+  .sec h4 { margin: 0 0 8px; font-size: 10.5px; letter-spacing: 1.4px; color: var(--muted); font-weight: 700; }
+  .senses { display: flex; flex-wrap: wrap; gap: 7px; }
+  .sense { background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.85); border-radius: 11px; padding: 6px 10px; font-size: 13.5px; line-height: 1.55; box-shadow: 0 2px 8px rgba(23,26,31,.025); }
+  .sense .pos { color: var(--accent); font-style: italic; font-size: 11px; margin-right: 4px; }
+  .exline { font-family: var(--serif); font-size: 15.5px; line-height: 1.85; color: #2a2e35; }
+  .excn { margin-top: 3px; font-size: 12px; color: var(--muted); }
+  .exsrc { margin-left: 5px; font-size: 10px; color: #aaa; }
+  .ex-row { display: flex; align-items: flex-start; gap: 8px; }
+  .ex-row .txt { flex: 1; }
+  .ex-row .spk { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,.9); background: rgba(255,255,255,.55); color: var(--accent); font-size: 12px; flex: 0 0 auto; }
+  .phrase-list { display: grid; gap: 5px; }
+  .phrase { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; line-height: 1.65; }
+  .phrase b { font-weight: 600; color: var(--ink-soft); flex: 0 0 auto; }
+  .phrase span { color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font-size: 11.5px; background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.7); border-radius: 8px; padding: 3px 8px; color: var(--ink-soft); }
+  .chip b { color: var(--accent); font-weight: 600; margin-right: 3px; }
+  .syn-group { margin-bottom: 7px; font-size: 12px; color: var(--muted); }
+  .syn-group .pos { color: var(--accent); font-style: italic; margin-right: 4px; }
+  .rootbox { background: rgba(255,255,255,.42); border: 1px solid rgba(255,255,255,.85); border-radius: 14px; padding: 12px 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.85); }
+  .rootbox .rt { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .rootbox .rt span { color: var(--accent); }
+  .morph { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 7px; font-size: 11.5px; }
+  .morph .part { background: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.9); border-radius: 7px; padding: 2px 6px; }
+  .morph .part em { font-style: normal; color: var(--accent); font-weight: 700; }
+  .morph .plus { color: var(--muted); }
+  .exam { margin-top: 8px; font-family: var(--serif); font-size: 13.5px; line-height: 1.75; color: var(--ink-soft); border-left: 3px solid var(--gold); padding-left: 10px; }
+  .exam .src { display: block; margin-top: 3px; font-family: var(--ui); font-size: 10px; color: var(--muted); }
+  .empty-sec { font-size: 11.5px; color: #aaa; }
+
+  button.chip { font-family: inherit; cursor: pointer; transition: border-color .15s, background .15s; }
+  button.chip:hover { border-color: rgba(15,118,110,.35); background: rgba(255,255,255,.8); }
+  .family-meta { margin-top: 18px; font-size: 11.5px; color: var(--muted); }
+  .family-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .family-word {
+    display: flex; align-items: baseline; gap: 8px; min-width: 0; text-align: left;
+    padding: 11px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.9);
+    background: rgba(255,255,255,.55); color: var(--ink); cursor: pointer;
+    box-shadow: 0 3px 12px rgba(23,26,31,.035); transition: transform .15s, border-color .15s, box-shadow .15s;
+  }
+  .family-word:hover { transform: translateY(-1px); border-color: rgba(15,118,110,.32); box-shadow: 0 8px 20px rgba(23,26,31,.07); }
+  .family-word b { font-family: var(--serif); font-size: 17px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .family-word span { font-size: 10px; color: var(--accent); font-style: italic; flex: 0 0 auto; }
+  .family-word i { margin-left: auto; font-style: normal; font-size: 9.5px; color: var(--muted); flex: 0 0 auto; }
+
+  .action-dock {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    width: min(640px, calc(100vw - 24px));
+    z-index: 70;
+    display: flex; flex-direction: column; gap: 7px;
+    padding: 11px 13px 9px;
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,.9);
+    background: linear-gradient(135deg, rgba(255,255,255,.8), rgba(255,255,255,.52));
+    box-shadow: 0 24px 60px rgba(31,45,61,.24), inset 0 1px 0 rgba(255,255,255,.95);
+    backdrop-filter: blur(34px) saturate(180%);
+    -webkit-backdrop-filter: blur(34px) saturate(180%);
+  }
+  .action-dock[hidden] { display: none !important; }
+  .dock-row { display: flex; align-items: center; gap: 8px; }
+  .dock-nav {
+    width: 42px; height: 42px; flex: 0 0 auto; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.95); background: rgba(255,255,255,.6);
+    color: var(--ink-soft); font-size: 17px; display: grid; place-items: center;
+    box-shadow: 0 4px 12px rgba(23,26,31,.06); transition: .16s;
+  }
+  .dock-nav:hover { color: var(--accent); background: rgba(15,118,110,.1); }
+  .dock-nav:disabled { opacity: .3; box-shadow: none; }
+  .rate-group { flex: 1; display: flex; align-items: center; gap: 6px; }
+  .ans-btn {
+    flex: 1; height: 42px; border-radius: 999px; border: 1px solid rgba(255,255,255,.95);
+    background: rgba(255,255,255,.58); font-size: 13.5px; font-weight: 700;
+    color: var(--ink-soft); box-shadow: 0 4px 12px rgba(23,26,31,.05); transition: .16s;
+  }
+  .ans-btn:hover { transform: translateY(-1px); }
+  .ans-btn.know { color: #137a5b; border-color: rgba(19,122,91,.35); }
+  .ans-btn.know.on { background: #137a5b; color: #fff; border-color: #137a5b; box-shadow: 0 8px 20px rgba(19,122,91,.25); }
+  .ans-btn.fuzzy { color: #a66a12; border-color: rgba(166,106,18,.32); }
+  .ans-btn.fuzzy.on { background: var(--gold); color: #fff; border-color: var(--gold); box-shadow: 0 8px 20px rgba(166,106,18,.22); }
+  .ans-btn.dont { color: #b52a35; border-color: rgba(181,42,53,.28); }
+  .ans-btn.dont.on { background: var(--danger); color: #fff; border-color: var(--danger); box-shadow: 0 8px 20px rgba(181,42,53,.2); }
+  .dock-hint { text-align: center; font-size: 10.5px; color: rgba(60,66,75,.55); line-height: 1.5; }
+
+  .summary { padding: 52px 30px 40px; text-align: center; }
+  .summary h2 { font-family: var(--serif); font-size: 30px; margin: 0 0 8px; }
+  .summary p { color: var(--muted); font-size: 13px; margin: 0 0 22px; }
+  .summary .nums { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 24px; }
+  .summary .nums b { font-family: var(--serif); font-size: 26px; display: block; }
+  .summary .nums span { font-size: 10.5px; color: var(--muted); }
+  .summary-actions { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
+  .summary-actions .pill { height: 38px; padding: 0 17px; }
+
+  .loading { padding: 60px 0; color: var(--muted); font-size: 13px; }
+  @media (max-width: 860px) {
+    .card-grid { grid-template-columns: 1fr; gap: 4px; }
+    .word { font-size: 40px; }
+    .card-body { padding: 24px 20px 20px; }
+    .card-top { padding: 13px 20px; }
+    .setup h1 { font-size: 32px; }
+    .setup { padding-top: 36px; }
+  }
+  @media (max-width: 480px) {
+    .wrap { padding: 0 14px 125px; }
+    .word { font-size: 36px; }
+    .setup-box { padding: 17px 15px; }
+    .setup-line .lab { width: 100%; margin-bottom: -6px; }
+    .card-body { padding: 22px 17px 18px; }
+    .action-dock { bottom: max(10px, env(safe-area-inset-bottom)); width: calc(100vw - 20px); padding: 9px 10px 7px; border-radius: 22px; }
+    .dock-nav { width: 38px; height: 38px; }
+    .ans-btn { height: 38px; font-size: 12.5px; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="mark">O</span>
+      <span>ODH<small>ENGLISH LISTENING</small></span>
+    </a>
+    <span class="sep"></span>
+    <div class="crumb"><a href="index.html">首页</a><span>/</span><b>随机背单词</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="roots.html">词根记忆</a>
+    <a class="pill" href="words.html">单词库</a>
+    <a class="pill primary" href="sets.html">听力题库</a>
+  </header>
+
+  <div class="wrap">
+    <section class="setup" id="setup">
+      <div class="kicker">ODH · WORD DRILL</div>
+      <h1>六级高频词，<br>按<em>词族一簇簇</em>过。</h1>
+      <p>只背 2958 个六级高频词（CET6 + CET4/6）。有词根的按词根归组，没有词根但有派生词的按词族聚成一簇；词头、派生词、近义词点开都能看释义。</p>
+      <div class="setup-box">
+        <div class="setup-line">
+          <span class="lab">本组词数</span>
+          <button class="choice" data-count="20">20</button>
+          <button class="choice on" data-count="30">30</button>
+          <button class="choice" data-count="50">50</button>
+          <button class="choice" data-count="100">100</button>
+          <button class="choice" data-count="all">全部</button>
+        </div>
+        <div class="setup-line">
+          <span class="lab">抽词范围</span>
+          <button class="choice on" data-filter="new">未熟悉</button>
+          <button class="choice" data-filter="weak">模糊 / 不认识</button>
+          <button class="choice" data-filter="all">全部六级高频</button>
+        </div>
+        <div class="setup-line">
+          <span class="lab">背词方式</span>
+          <button class="choice on" data-kind="family">词族成簇</button>
+          <button class="choice" data-kind="random">随机单词</button>
+        </div>
+        <button class="setup-go" id="start">开始词族 →</button>
+      </div>
+      <div class="setup-stats">
+        <div><b id="st-total">0</b><span>六级高频词</span></div>
+        <div><b id="st-families">0</b><span>个词族</span></div>
+        <div><b id="st-fam">0</b><span>已熟悉</span></div>
+        <div><b id="st-weak">0</b><span>模糊 / 不认识</span></div>
+        <div><b id="st-seen">0</b><span>已抽到</span></div>
+      </div>
+    </section>
+
+    <section class="study-card" id="study" hidden>
+      <div class="card-top">
+        <span class="idx" id="card-idx">1 / 30</span>
+        <span class="tag" id="card-tag">CET4</span>
+        <span class="spacer"></span>
+        <button id="to-setup">重新设置</button>
+      </div>
+      <div id="card-body" class="card-body"></div>
+    </section>
+
+    <div class="action-dock" id="action-dock" hidden>
+      <div class="dock-row">
+        <button class="dock-nav" id="prev" aria-label="上一个" title="上一个">←</button>
+        <div class="rate-group">
+          <button class="ans-btn dont" data-ans="unknown">不认识</button>
+          <button class="ans-btn fuzzy" data-ans="fuzzy">模糊</button>
+          <button class="ans-btn know" data-ans="familiar">认识</button>
+        </div>
+        <button class="dock-nav" id="next" aria-label="下一个" title="下一个">→</button>
+      </div>
+      <div class="dock-hint" id="foot-hint">先看单词，再选熟悉度</div>
+    </div>
+
+    <section class="study-card" id="summary" hidden>
+      <div class="summary">
+        <h2 id="sum-title">这一组过完了</h2>
+        <p id="sum-sub"></p>
+        <div class="nums">
+          <div><b id="sum-know">0</b><span>认识</span></div>
+          <div><b id="sum-fuzzy">0</b><span>模糊</span></div>
+          <div><b id="sum-dont">0</b><span>不认识</span></div>
+          <div><b id="sum-skip">0</b><span>跳过</span></div>
+        </div>
+        <div class="summary-actions">
+          <button class="pill primary" id="again">再来一组随机</button>
+          <button class="pill" id="again-weak">只背没记住的</button>
+          <button class="pill" id="back-setup">回到设置</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="assets/js/speech.js"></script>
+  <script src="assets/js/data/words.js"></script>
+  <script src="assets/js/wordpop.js"></script>
+  <script src="assets/js/data/families.js"></script>
+  <script src="assets/js/data/wordbank.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const DATA = window.ODH_WORDBANK || { words: [] };
+    const ALL = DATA.words || [];
+    const WORDS = ALL.filter(x => x.l === 'CET6' || x.l === 'CET4/6');
+    const FAMILIES = (window.ODH_FAMILIES && window.ODH_FAMILIES.clusters) || [];
+    const MAP = new Map(WORDS.map(x => [x.w, x]));
+    window.ODH_PAGE_CTX = { setId: 'study', src: 'study' };
+    const STORE_KEY = 'odh.study.v1';
+    const UNKNOWN_KEY = 'odh.unknown.v1';
+    const $ = s => document.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const store = readJSON(STORE_KEY, { levels: {} });
+    store.levels = store.levels || {};
+    const state = { queue: [], idx: 0, count: 30, filter: 'new', kind: 'family', tally: { familiar: 0, fuzzy: 0, unknown: 0, skip: 0 }, answered: {} };
+    const speakMap = Object.create(null);
+    let speakSeq = 0;
+
+    function readJSON(k, d) { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch (e) { return d; } }
+    function writeJSON(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+    function save() { writeJSON(STORE_KEY, store); }
+    function level(w) { const x = store.levels[w]; return x && x.level ? x.level : 'new'; }
+    function levelLabel(l) { return l === 'familiar' ? '熟悉' : l === 'fuzzy' ? '模糊' : l === 'unknown' ? '不认识' : '未学'; }
+    function counts() {
+      let fam = 0, weak = 0;
+      WORDS.forEach(x => {
+        const l = level(x.w);
+        if (l === 'familiar') fam++;
+        else if (l === 'fuzzy' || l === 'unknown') weak++;
+      });
+      return { total: WORDS.length, fam, weak };
+    }
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function fmtPhon(p) {
+      p = String(p || '').trim();
+      if (!p) return '';
+      return p.startsWith('/') ? p : '/' + p.replace(/^\/|\/$/g, '') + '/';
+    }
+    function speakId(text) { const id = 's' + (++speakSeq); speakMap[id] = text; return id; }
+    function spk(text, cls) { return `<button class="${cls || 'speak'}" data-speak="${speakId(text)}" title="播放发音">▶</button>`; }
+
+    function speak(text) {
+      if (window.ODHSpeech) ODHSpeech.speak(text, { rate: text && text.split(/\s+/).length > 2 ? 0.96 : 0.9 });
+    }
+
+    function updateStats() {
+      const c = counts();
+      $('#st-total').textContent = c.total;
+      $('#st-families').textContent = FAMILIES.length;
+      $('#st-fam').textContent = c.fam;
+      $('#st-weak').textContent = c.weak;
+      let seen = 0;
+      for (const k in store.levels) if (store.levels[k] && store.levels[k].n) seen++;
+      $('#st-seen').textContent = seen;
+    }
+    function setupVisible() { $('#setup').hidden = false; $('#study').hidden = true; $('#summary').hidden = true; $('#action-dock').hidden = true; }
+    function showCard() {
+      $('#setup').hidden = true; $('#summary').hidden = true; $('#study').hidden = false; $('#action-dock').hidden = false;
+      const item = state.queue[state.idx];
+      if (!item) { showSummary(); return; }
+      const family = state.kind === 'family';
+      const wordKey = family ? item.head : item;
+      const w = MAP.get(wordKey);
+      if (!w) { showSummary(); return; }
+      const lv = level(w.w);
+      $('#card-idx').textContent = (state.idx + 1) + ' / ' + state.queue.length;
+      $('#card-tag').textContent = family ? '词族' : (w.l || 'CET');
+      $('#foot-hint').textContent = family
+        ? '词族卡 · 点任意派生词看释义'
+        : (lv === 'new' ? '先看单词，再选熟悉度' : '当前标记：' + levelLabel(lv));
+      $$('.ans-btn').forEach(b => b.classList.toggle('on', b.dataset.ans === lv));
+      $('#prev').disabled = state.idx <= 0;
+      const last = state.idx >= state.queue.length - 1;
+      $('#next').textContent = last ? '✓' : '→';
+      $('#next').title = last ? '完成本组' : '下一个';
+      $('#next').setAttribute('aria-label', last ? '完成本组' : '下一个');
+      if (family) renderFamilyCard(item, w, lv);
+      else renderCard(w, lv);
+    }
+
+    function renderCard(w, lv) {
+      const m = (w.m || []).map(x => `<span class="sense"><span class="pos">${esc(x[0])}</span>${esc(x[1])}</span>`).join('') || '<span class="empty-sec">暂无释义</span>';
+      const ex = w.ex
+        ? `<div class="ex-row"><div class="txt"><div class="exline">${esc(w.ex.s)}</div>${w.ex.cn ? `<div class="excn">${esc(w.ex.cn)}</div>` : ''}${w.ex.src ? `<span class="exsrc">${esc(w.ex.src)}</span>` : ''}</div>${spk(w.ex.s, 'spk')}</div>`
+        : '<span class="empty-sec">暂无例句</span>';
+      const phr = (w.phr || []).slice(0, 6).map(x => `<div class="phrase"><b>${esc(x[0])}</b><span>${esc(x[1])}</span></div>`).join('') || '<span class="empty-sec">暂无短语</span>';
+      const syn = (w.syn || []).map(g => `<div class="syn-group"><span class="pos">${esc(g.p)}</span>${esc(g.t)}<div class="chips">${(g.w || []).slice(0, 6).map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div></div>`).join('') || '<span class="empty-sec">暂无近义词</span>';
+      const fam = (w.fam || []).slice(0, 8).map(x => `<button class="chip fam-chip word" data-w="${esc(x.w[0])}" data-pos="${esc(x.p || '')}" data-zh="${esc(x.w[1] || '')}" title="点击查看释义"><b>${esc(x.w[0])}</b>${esc(x.w[1])}</button>`).join('') || '<span class="empty-sec">暂无派生词</span>';
+      let root = '<span class="empty-sec">本词暂无词根拆分</span>';
+      if (w.root && w.root.length) {
+        const r = w.root[0];
+        const parts = [];
+        if (r.pre) parts.push(`<span class="part"><em>${esc(r.pre)}</em> ${esc(r.pz || '前缀')}</span>`);
+        parts.push(`<span class="part"><em>${esc(r.rr || r.k)}</em> ${esc(r.rz || r.z)}</span>`);
+        if (r.suf) parts.push(`<span class="part"><em>${esc(r.suf)}</em> ${esc(r.sz || '后缀')}</span>`);
+        root = `<div class="rootbox"><div class="rt">词根 <span>${esc(r.k)}</span> · ${esc(r.z)}</div><div class="morph">${parts.join('<span class="plus">+</span>')}</div><div style="margin-top:7px;font-size:11px;color:var(--muted)"><a href="roots.html?root=${encodeURIComponent(r.k)}&w=${encodeURIComponent(w.w)}">打开词根详情 →</a></div></div>`;
+      }
+      const exam = w.exam ? `<div class="exam">${esc(w.exam.s)}<span class="src">${esc(w.exam.src)}</span></div>` : '';
+      $('#card-body').innerHTML = `
+        <div class="word-row">
+          <div class="word-main">
+            <div class="word">${esc(w.w)}</div>
+            <div class="phon">${esc(fmtPhon(w.p))}</div>
+          </div>
+          ${spk(w.w)}
+          <span class="level-pill ${lv}" id="card-level">${levelLabel(lv)}</span>
+        </div>
+        <div class="card-grid">
+          <div>
+            <div class="sec"><h4>释义</h4><div class="senses">${m}</div></div>
+            <div class="sec"><h4>例句</h4>${ex}</div>
+            ${exam ? `<div class="sec"><h4>真题例句</h4>${exam}</div>` : ''}
+          </div>
+          <div>
+            <div class="sec"><h4>短语 / 固定搭配</h4><div class="phrase-list">${phr}</div></div>
+            <div class="sec"><h4>近义词</h4>${syn}</div>
+            <div class="sec"><h4>派生词 / 同根词</h4><div class="chips">${fam}</div></div>
+            <div class="sec"><h4>词根拆分</h4>${root}</div>
+          </div>
+        </div>`;
+      const body = $('#card-body');
+      if (body.animate) {
+        body.animate(
+          [{ opacity: .35, transform: 'translateY(10px) scale(.992)' }, { opacity: 1, transform: 'none' }],
+          { duration: 290, easing: 'cubic-bezier(.2,.8,.2,1)' }
+        );
+      }
+    }
+
+    function renderFamilyCard(c, w, lv) {
+      const headMeaning = (w.m || []).map(x => `<span class="sense"><span class="pos">${esc(x[0])}</span>${esc(x[1])}</span>`).join('') || '<span class="empty-sec">暂无释义</span>';
+      const words = (c.words || []).map(x => {
+        const known = !!(window.ODH_WORDS && window.ODH_WORDS[x.w]);
+        return `<button class="family-word word" data-w="${esc(x.w)}" data-pos="${esc(x.pos || '')}" data-zh="${esc(x.zh || '')}" title="点击查看释义">
+          <b>${esc(x.w)}</b><span>${esc(x.pos || '')}</span><i>${known ? '看释义' : '查释义'}</i>
+        </button>`;
+      }).join('');
+      $('#card-body').innerHTML = `
+        <div class="word-row">
+          <div class="word-main">
+            <div class="word">${esc(w.w)}</div>
+            <div class="phon">${esc(fmtPhon(w.p))}</div>
+          </div>
+          ${spk(w.w)}
+          <span class="level-pill ${lv}" id="card-level">${levelLabel(lv)}</span>
+        </div>
+        <div class="family-meta">词族 · ${(c.words || []).length} 个词 · 点任意派生词看释义</div>
+        <div class="family-grid">${words}</div>
+        <div class="sec" style="margin-top:18px"><h4>词头释义</h4><div class="senses">${headMeaning}</div></div>
+      `;
+      const body = $('#card-body');
+      if (body.animate) {
+        body.animate(
+          [{ opacity: .35, transform: 'translateY(10px) scale(.992)' }, { opacity: 1, transform: 'none' }],
+          { duration: 290, easing: 'cubic-bezier(.2,.8,.2,1)' }
+        );
+      }
+    }
+
+    function setLevel(kind) {
+      const item = state.queue[state.idx];
+      if (!item) return;
+      const w = state.kind === 'family' ? MAP.get(item.head) : MAP.get(item);
+      if (!w) return;
+      const prev = level(w.w);
+      store.levels[w.w] = { level: kind, at: Date.now(), n: ((store.levels[w.w] && store.levels[w.w].n) || 0) + 1 };
+      save();
+      if (kind === 'unknown') {
+        const u = readJSON(UNKNOWN_KEY, {});
+        const old = u[w.w] || { count: 0, sets: [], lastAt: 0, known: false, src: 'study' };
+        u[w.w] = Object.assign({}, old, { count: old.count || 0, lastAt: Date.now(), known: false, src: old.src || 'study' });
+        writeJSON(UNKNOWN_KEY, u);
+      } else if (kind === 'familiar') {
+        const u = readJSON(UNKNOWN_KEY, {});
+        if (u[w.w]) { u[w.w].known = true; writeJSON(UNKNOWN_KEY, u); }
+      }
+      if (!state.answered[w.w]) {
+        state.tally[kind] = (state.tally[kind] || 0) + 1;
+        state.answered[w.w] = true;
+      }
+      $$('.ans-btn').forEach(b => b.classList.toggle('on', b.dataset.ans === kind));
+      const lp = $('#card-level');
+      if (lp) { lp.className = 'level-pill ' + kind; lp.textContent = levelLabel(kind); }
+      $('#foot-hint').textContent = kind === 'familiar' ? '已标为熟悉 · 点下一个继续'
+        : kind === 'fuzzy' ? '已标为模糊 · 点下一个继续'
+        : '已标为不认识 · 已加入单词库';
+      updateStats();
+    }
+
+    function nextCard() {
+      if (state.idx >= state.queue.length - 1) { showSummary(); return; }
+      state.idx++;
+      showCard();
+    }
+    function prevCard() {
+      if (state.idx <= 0) return;
+      state.idx--;
+      showCard();
+    }
+    function startSession(filter, count, preset) {
+      state.filter = filter || state.filter;
+      state.count = count == null ? state.count : count;
+      let pool;
+      if (state.kind === 'family') {
+        pool = FAMILIES.filter(c => {
+          const l = level(c.head);
+          if (state.filter === 'new') return l !== 'familiar';
+          if (state.filter === 'weak') return l === 'fuzzy' || l === 'unknown';
+          return true;
+        });
+        if (preset && preset.length) pool = preset.slice();
+      } else {
+        pool = WORDS.filter(x => {
+          const l = level(x.w);
+          if (state.filter === 'new') return l !== 'familiar';
+          if (state.filter === 'weak') return l === 'fuzzy' || l === 'unknown';
+          return true;
+        });
+        if (preset && preset.length) pool = preset.map(w => MAP.get(w)).filter(Boolean);
+      }
+      if (!pool.length) { alert('这个范围里没有可背的词，换一个范围试试。'); return; }
+      pool = shuffle(pool.slice());
+      if (state.count > 0 && pool.length > state.count) pool = pool.slice(0, state.count);
+      state.queue = state.kind === 'family' ? pool : pool.map(x => x.w);
+      state.idx = 0;
+      state.tally = { familiar: 0, fuzzy: 0, unknown: 0, skip: 0 };
+      state.answered = {};
+      showCard();
+    }
+    function showSummary() {
+      $('#study').hidden = true;
+      $('#summary').hidden = false;
+      $('#action-dock').hidden = true;
+      const q = state.queue;
+      let know = 0, fuzzy = 0, dont = 0, skip = 0;
+      q.forEach(item => {
+        const w = state.kind === 'family' ? item.head : item;
+        const l = level(w);
+        if (l === 'familiar') know++;
+        else if (l === 'fuzzy') fuzzy++;
+        else if (l === 'unknown') dont++;
+        if (!state.answered[w]) skip++;
+      });
+      $('#sum-know').textContent = know;
+      $('#sum-fuzzy').textContent = fuzzy;
+      $('#sum-dont').textContent = dont;
+      $('#sum-skip').textContent = skip;
+      $('#sum-sub').textContent = `本组 ${q.length} ${state.kind === 'family' ? '个词族' : '词'} · 认识 ${know} · 模糊 ${fuzzy} · 不认识 ${dont}${skip ? ' · 跳过 ' + skip : ''}`;
+      updateStats();
+    }
+
+    function selectChoice(group, value) {
+      $$(group).forEach(b => b.classList.toggle('on', b.dataset.count === value || b.dataset.filter === value));
+    }
+
+    // events
+    $('#start').addEventListener('click', () => startSession(state.filter, state.count));
+    $$('[data-count]').forEach(b => b.addEventListener('click', () => {
+      state.count = b.dataset.count === 'all' ? 0 : parseInt(b.dataset.count, 10);
+      $$('[data-count]').forEach(x => x.classList.toggle('on', x === b));
+    }));
+    $$('[data-filter]').forEach(b => b.addEventListener('click', () => {
+      state.filter = b.dataset.filter;
+      $$('[data-filter]').forEach(x => x.classList.toggle('on', x === b));
+    }));
+    $$('[data-kind]').forEach(b => b.addEventListener('click', () => {
+      state.kind = b.dataset.kind;
+      $$('[data-kind]').forEach(x => x.classList.toggle('on', x === b));
+      $('#start').textContent = state.kind === 'family' ? '开始词族 →' : '开始随机 →';
+    }));
+    $$('.ans-btn').forEach(b => b.addEventListener('click', () => setLevel(b.dataset.ans)));
+    $('#next').addEventListener('click', nextCard);
+    $('#prev').addEventListener('click', prevCard);
+    $('#to-setup').addEventListener('click', setupVisible);
+    $('#back-setup').addEventListener('click', setupVisible);
+    $('#again').addEventListener('click', () => startSession(state.filter, state.count));
+    $('#again-weak').addEventListener('click', () => {
+      const weak = state.queue.filter(item => {
+        const w = state.kind === 'family' ? item.head : item;
+        return level(w) !== 'familiar';
+      });
+      if (!weak.length) { alert('这一组没有需要重背的词。'); return; }
+      startSession('weak', 0, weak);
+    });
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-speak]');
+      if (b) speak(speakMap[b.dataset.speak]);
+    });
+    document.addEventListener('keydown', e => {
+      if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+      if ($('#study').hidden) return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); prevCard(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); nextCard(); }
+      else if (e.key === '1') setLevel('unknown');
+      else if (e.key === '2') setLevel('fuzzy');
+      else if (e.key === '3') setLevel('familiar');
+    });
+
+    updateStats();
+    if (!WORDS.length) {
+      $('#setup').innerHTML = '<div class="loading">词库未载入，请刷新页面。</div>';
+    }
+  })();
+  </script>
+</body>
+</html>

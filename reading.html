@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>阅读 · ODH 英语学习工具</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f766e'/><text x='16' y='23' font-size='19' font-family='Georgia' fill='white' text-anchor='middle'>O</text></svg>" />
+<link rel="stylesheet" href="assets/css/app.css" />
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 26px 80px; }
+  .topbar { position: sticky; top: 0; }
+  .head { padding: 48px 0 8px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 36px; align-items: end; }
+  .kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 2px; color: var(--accent); font-weight: 700; }
+  .kicker::before { content: ""; width: 22px; height: 1px; background: var(--accent); }
+  .head h1 { margin: 14px 0 12px; font-family: var(--serif); font-size: 46px; line-height: 1.2; letter-spacing: -.5px; }
+  .head h1 em { font-style: normal; color: var(--accent); }
+  .head p { margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.9; max-width: 620px; }
+  .side { background: linear-gradient(135deg, #fffdf8, #f3efe6); border: 1px solid var(--line-strong); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .side h4 { margin: 0 0 10px; font-size: 11px; letter-spacing: 1.5px; color: var(--muted); }
+  .side .nums { display: flex; gap: 24px; flex-wrap: wrap; }
+  .side b { font-family: var(--serif); font-size: 25px; }
+  .side span { display: block; font-size: 10.5px; color: var(--muted); }
+  .side .tip { margin-top: 12px; font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 26px 0 20px; }
+  .yr { display: flex; gap: 4px; flex-wrap: wrap; }
+  .yr button { height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--bg-elev); font-size: 12.5px; color: var(--muted); }
+  .yr button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .modes { margin-left: auto; display: flex; padding: 3px; border-radius: 999px; background: var(--bg-deep); border: 1px solid var(--line); }
+  .modes button { border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; color: var(--muted); }
+  .modes button.on { background: var(--bg-elev); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .toolhint { font-size: 11.5px; color: var(--muted); margin: -10px 0 20px; }
+
+  .sets { display: flex; flex-direction: column; gap: 14px; }
+  .set-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .sc-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .sc-top h3 { margin: 0; font-family: var(--serif); font-size: 22px; }
+  .sc-top .date { font-size: 11.5px; letter-spacing: 1.1px; color: var(--muted); font-weight: 700; }
+  .sc-top .setno { font-size: 10.5px; background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 3px 8px; font-weight: 700; }
+  .sc-top .sum { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+  .rows { margin-top: 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+  .sec-row { border: 1px solid var(--line); border-radius: 11px; padding: 10px 11px; background: #fff; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .sec-row:hover { border-color: var(--accent); }
+  .sec-row .t { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .sec-row .r { font-size: 10.5px; color: var(--muted); }
+  .sec-row .st { margin-top: auto; font-size: 10.5px; color: var(--muted); }
+  .sec-row .st.done { color: var(--ok); font-weight: 700; }
+  .sec-row .st.part { color: var(--gold); font-weight: 700; }
+  .sc-foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .sc-foot .pill { height: 32px; font-size: 12px; }
+  .sc-foot .muted { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+  .empty-card { border: 1px dashed var(--line-strong); border-radius: 14px; padding: 46px 20px; text-align: center; color: var(--muted); font-size: 13px; background: var(--bg-elev); }
+
+  @media (max-width: 900px) {
+    .head { grid-template-columns: 1fr; gap: 22px; padding-top: 40px; }
+    .head h1 { font-size: 36px; }
+    .rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px 60px; }
+    .head h1 { font-size: 31px; }
+    .set-card { padding: 15px 14px; }
+    .sc-top h3 { font-size: 20px; }
+    .rows { gap: 7px; }
+    .modes { margin-left: 0; }
+    .toolbar { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="mark">O</span><span>ODH<small>ENGLISH LISTENING</small></span></a>
+    <span class="sep"></span>
+    <div class="crumb"><b>阅读</b></div>
+    <div class="spacer"></div>
+    <a class="pill" href="sets.html">听力题库</a>
+    <a class="pill" href="study.html">随机背单词</a>
+    <a class="pill" href="words.html">单词库</a>
+    <a class="pill" href="translate.html">翻译</a>
+    <a class="pill primary" href="read.html?set=2026-06-1&sec=all&mode=practice">开始阅读</a>
+  </header>
+
+  <div class="wrap">
+    <section class="head">
+      <div>
+        <div class="kicker">ODH · READING LAB</div>
+        <h1>阅读真题，<br><em>A / B / C 拆开练</em>。</h1>
+        <p>2023.06–2026.06 每期前两套，共 14 套六级真题阅读：选词填空、段落匹配、两篇仔细阅读全部电子化。做题模式先选后判，复盘模式直接对答案；原文任意单词点开即查。</p>
+      </div>
+      <aside class="side">
+        <h4>题库规模</h4>
+        <div class="nums">
+          <div><b id="n-sets">0</b><span>套真题</span></div>
+          <div><b id="n-pass">0</b><span>篇阅读</span></div>
+          <div><b id="n-q">0</b><span>道阅读题</span></div>
+          <div><b id="n-tr">0</b><span>套翻译</span></div>
+        </div>
+        <div class="tip">每套含 Section A 选词填空 10 题、Section B 段落匹配 10 题、Section C 两篇各 5 题，另有 Part IV 汉译英。</div>
+      </aside>
+    </section>
+
+    <div class="toolbar">
+      <div class="yr" id="yr-filter"></div>
+      <div class="modes" id="mode-switch">
+        <button data-mode="practice" class="on">做题模式</button>
+        <button data-mode="review">复盘模式</button>
+      </div>
+    </div>
+    <div class="toolhint" id="toolhint">做题模式会隐藏答案，提交后判分；复盘模式直接显示正确答案。</div>
+    <div class="sets" id="sets"></div>
+  </div>
+
+  <script src="assets/js/data/reading.js"></script>
+  <script>
+    (function () {
+      const DATA = (window.ODH_READING && window.ODH_READING.sets) || {};
+      const META = (window.ODH_READING && window.ODH_READING.meta) || {};
+      const READ_KEY = 'odh.read.v1';
+      const ids = Object.keys(DATA).sort((a, b) => {
+        const [ay, am, an] = a.split('-').map(Number);
+        const [by, bm, bn] = b.split('-').map(Number);
+        return by - ay || bm - am || bn - an;
+      });
+      let year = 'all';
+      let mode = 'practice';
+      const years = [...new Set(ids.map(x => x.split('-')[0]))].sort().reverse();
+
+      function readStore() {
+        try { return JSON.parse(localStorage.getItem(READ_KEY) || '{}'); } catch (e) { return {}; }
+      }
+      function sectionState(setId, key) {
+        const rec = (readStore()[setId] || {})[key];
+        if (!rec || !rec.submitted) return { cls: '', text: '未做' };
+        const pct = rec.total ? Math.round(rec.right / rec.total * 100) : 0;
+        return { cls: pct >= 80 ? 'done' : 'part', text: `正确率 ${pct}%` };
+      }
+      function secLink(setId, sec) {
+        return `read.html?set=${encodeURIComponent(setId)}&sec=${sec}&mode=${mode}`;
+      }
+      function renderYears() {
+        document.getElementById('yr-filter').innerHTML =
+          `<button data-y="all" class="${year === 'all' ? 'on' : ''}">全部</button>` +
+          years.map(y => `<button data-y="${y}" class="${year === y ? 'on' : ''}">${y}</button>`).join('');
+      }
+      function render() {
+        renderYears();
+        const list = ids.filter(id => year === 'all' || id.startsWith(year + '-'));
+        const box = document.getElementById('sets');
+        if (!list.length) { box.innerHTML = '<div class="empty-card">这个年份还没有阅读数据。</div>'; return; }
+        box.innerHTML = list.map(id => {
+          const d = DATA[id];
+          const A = sectionState(id, 'A');
+          const B = sectionState(id, 'B');
+          const C1 = sectionState(id, 'C1');
+          const C2 = sectionState(id, 'C2');
+          const rows = [
+            ['A', '阅读 A · 选词填空', `${d.A.answers ? '26–35' : ''} · 15 词库`, A],
+            ['B', '阅读 B · 段落匹配', '36–45 · 信息匹配', B],
+            ['C1', '阅读 C1 · 仔细阅读', '46–50 · Passage One', C1],
+            ['C2', '阅读 C2 · 仔细阅读', '51–55 · Passage Two', C2],
+          ];
+          return `<article class="set-card">
+            <div class="sc-top">
+              <span class="date">${d.date.replace('-', '.')}</span>
+              <h3>六级阅读</h3>
+              <span class="setno">第 ${d.set} 套</span>
+              <span class="sum">30 题 · 4 篇</span>
+            </div>
+            <div class="rows">${rows.map(([sec, t, r, st]) => `
+              <a class="sec-row" href="${secLink(id, sec)}">
+                <span class="t">${t}</span>
+                <span class="r">${r}</span>
+                <span class="st ${st.cls}">${st.text}</span>
+              </a>`).join('')}</div>
+            <div class="sc-foot">
+              <a class="pill primary" href="${secLink(id, 'all')}">整套阅读 →</a>
+              <a class="pill" href="translate.html?set=${encodeURIComponent(id)}">翻译这套</a>
+              <a class="muted" href="${secLink(id, 'B')}">段落匹配</a>
+            </div>
+          </article>`;
+        }).join('');
+      }
+      document.getElementById('yr-filter').addEventListener('click', e => {
+        const b = e.target.closest('button[data-y]');
+        if (!b) return;
+        year = b.dataset.y;
+        render();
+      });
+      document.getElementById('mode-switch').addEventListener('click', e => {
+        const b = e.target.closest('button[data-mode]');
+        if (!b) return;
+        mode = b.dataset.mode;
+        [...e.currentTarget.querySelectorAll('button')].forEach(x => x.classList.toggle('on', x === b));
+        document.getElementById('toolhint').textContent = mode === 'practice'
+          ? '做题模式会隐藏答案，提交后判分；复盘模式直接显示正确答案。'
+          : '复盘模式直接显示正确答案，可对照原文逐题回看，也可继续修改答案重判。';
+        render();
+      });
+      document.getElementById('n-sets').textContent = META.sets || ids.length;
+      document.getElementById('n-pass').textContent = (META.sets || ids.length) * 4;
+      document.getElementById('n-q').textContent = (META.sets || ids.length) * 30;
+      document.getElementById('n-tr').textContent = META.sets || ids.length;
+      render();
+    })();
+  </script>
+</body>
+</html>
