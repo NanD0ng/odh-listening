@@ -9,3 +9,6 @@ desktop.ini
 *.log
 *.tmp
 *.bak
+
+# 误入的旧克隆目录
+ODH-英语练习网页/
